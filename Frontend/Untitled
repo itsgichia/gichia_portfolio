@@ -1,0 +1,19 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#050508;--bg1:#080b12;--bg2:#0d1120;--bg3:#121729;
+  --border:#1a2035;--border2:#252f50;
+  --text:#e8eaf5;--muted:#5a6380;--dim:#1e2540;
+  --accent:#c8f135;--a2:#4fa8ff;--a3:#ff6b9d;--a4:#ffd166;
+  --font:'Syne',sans-serif;--mono:'DM Mono',monospace;
+  --r:6px;--r2:12px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+::selection{background:var(--accent);color:#000}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{font-family:var(--font);font-weight:800;letter-spacing:-0.03em}
+button{font-family:var(--font)}
