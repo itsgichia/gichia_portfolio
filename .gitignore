@@ -1,0 +1,10 @@
+node_modules/
+dist/
+__pycache__/
+.venv/
+.pytest_cache/
+*.db
+.env
+Backend/static/
+.DS_Store
+_to_delete/
