@@ -5,21 +5,23 @@ import time
 from collections import defaultdict, deque
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, WebSocket, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from . import rsv
+from . import live, rsv
 from .auth import admin_enabled, check_password, issue_token, require_admin
 from .db import Base, SessionLocal, engine, get_db
-from .models import Education, Experience, Message, Profile, Project
+from .models import Counter, Education, Experience, GuestbookEntry, Message, Profile, Project
 from .schemas import (
     EducationOut,
     ExperienceIn,
     ExperienceOut,
+    GuestbookIn,
+    GuestbookOut,
     LoginIn,
     MessageIn,
     MessageOut,
@@ -94,23 +96,73 @@ def list_education(db: Session = Depends(get_db)):
 
 
 _contact_log: dict[str, deque] = defaultdict(deque)
+_guestbook_log: dict[str, deque] = defaultdict(deque)
+_visit_log: dict[str, float] = {}
+
+
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+def _over_limit(log: dict[str, deque], key: str, limit: int, window: float = 3600) -> bool:
+    """Record a hit for key and report whether it exceeds limit within window seconds."""
+    now = time.time()
+    hits = log[key]
+    while hits and now - hits[0] > window:
+        hits.popleft()
+    if len(hits) >= limit:
+        return True
+    hits.append(now)
+    return False
 
 
 @app.post("/api/contact", status_code=status.HTTP_201_CREATED)
 def contact(msg: MessageIn, request: Request, db: Session = Depends(get_db)):
     if msg.website:  # honeypot field filled in: quietly accept and drop
         return {"ok": True}
-    ip = request.client.host if request.client else "unknown"
-    now = time.time()
-    hits = _contact_log[ip]
-    while hits and now - hits[0] > 3600:
-        hits.popleft()
-    if len(hits) >= 5:
+    if _over_limit(_contact_log, _client_ip(request), 5):
         raise HTTPException(429, "Too many messages. Please try again later or email me directly.")
-    hits.append(now)
     db.add(Message(name=msg.name, email=msg.email, organisation=msg.organisation, body=msg.body))
     db.commit()
     return {"ok": True}
+
+
+@app.get("/api/guestbook", response_model=list[GuestbookOut])
+def list_guestbook(db: Session = Depends(get_db)):
+    return db.scalars(select(GuestbookEntry).order_by(GuestbookEntry.created_at.desc()).limit(100)).all()
+
+
+@app.post("/api/guestbook", response_model=GuestbookOut | None, status_code=status.HTTP_201_CREATED)
+def sign_guestbook(body: GuestbookIn, request: Request, db: Session = Depends(get_db)):
+    if body.website:  # honeypot
+        return None
+    if _over_limit(_guestbook_log, _client_ip(request), 3):
+        raise HTTPException(429, "You've signed a few times already. Try again in an hour.")
+    entry = GuestbookEntry(name=body.name, message=body.message, site=body.site or None)
+    db.add(entry)
+    db.commit()
+    db.refresh(entry)
+    return entry
+
+
+@app.post("/api/visits")
+def count_visit(request: Request, db: Session = Depends(get_db)):
+    """Increment the hit counter, at most once per visitor IP every 30 minutes."""
+    counter = db.get(Counter, "visits") or Counter(key="visits", value=0)
+    ip, now = _client_ip(request), time.time()
+    if len(_visit_log) > 10_000:
+        _visit_log.clear()
+    if now - _visit_log.get(ip, 0) > 1800:
+        _visit_log[ip] = now
+        counter.value += 1
+        db.add(counter)
+        db.commit()
+    return {"count": counter.value}
+
+
+@app.websocket("/api/live")
+async def live_socket(ws: WebSocket):
+    await live.endpoint(ws, _origins)
 
 
 @app.get("/api/rsv/defaults")
@@ -200,6 +252,20 @@ def update_experience(eid: int, body: ExperienceIn, db: Session = Depends(get_db
     db.commit()
     db.refresh(item)
     return item
+
+
+@app.delete("/api/admin/guestbook/{gid}", status_code=204, dependencies=[admin])
+def delete_guestbook_entry(gid: int, db: Session = Depends(get_db)):
+    entry = db.get(GuestbookEntry, gid)
+    if not entry:
+        raise HTTPException(404, "Guestbook entry not found")
+    db.delete(entry)
+    db.commit()
+
+
+@app.delete("/api/admin/chat", status_code=204, dependencies=[admin])
+def clear_chat():
+    live.hub.clear_chat()
 
 
 @app.get("/api/admin/messages", response_model=list[MessageOut], dependencies=[admin])

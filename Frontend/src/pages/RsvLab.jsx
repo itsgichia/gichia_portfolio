@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { api } from '../api'
 import LineChart from '../components/LineChart'
+import { Win } from '../components/Retro'
 
 const DEFAULTS = {
   maternal_coverage: 0,
@@ -60,7 +61,8 @@ export default function RsvLab() {
   const anyProduct = params.maternal_coverage > 0 || params.nirsevimab_coverage > 0
 
   return (
-    <div className="wrap article">
+    <div className="page">
+    <Win title="rsv_lab.exe" icon="⚗" className="article">
       <h1 className="article__title">RSV Lab</h1>
       <p className="article__lede">
         How much could infant immunisation reduce RSV hospitalisations? Change the programme or the virus and the
@@ -190,6 +192,7 @@ export default function RsvLab() {
           <a href="https://github.com/itsgichia/rsv-transmission-model" target="_blank" rel="noreferrer">GitHub</a>.
         </p>
       </section>
+    </Win>
     </div>
   )
 }

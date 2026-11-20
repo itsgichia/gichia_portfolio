@@ -63,3 +63,55 @@ def test_rsv_simulation():
         first = data["summary"][0]
         assert first["group"] == "0-2 months" and first["percent_averted"] > 30
         assert c.post("/api/rsv/simulate", json={"r0": 9}).status_code == 422
+
+
+def test_guestbook_sign_list_and_moderate():
+    with client() as c:
+        assert c.post("/api/guestbook", json={"name": " ", "message": "hi there"}).status_code == 422
+        assert c.post("/api/guestbook", json={"name": "Sam", "message": "hi", "site": "javascript:alert(1)"}).status_code == 422
+        r = c.post("/api/guestbook", json={"name": "Sam", "message": "Lovely site!", "site": "https://sam.example"})
+        assert r.status_code == 201
+        gid = r.json()["id"]
+        assert c.get("/api/guestbook").json()[0]["message"] == "Lovely site!"
+        assert c.delete(f"/api/admin/guestbook/{gid}").status_code == 401
+        token = c.post("/api/auth/login", json={"password": "test-password"}).json()["token"]
+        assert c.delete(f"/api/admin/guestbook/{gid}", headers={"Authorization": f"Bearer {token}"}).status_code == 204
+        assert all(e["id"] != gid for e in c.get("/api/guestbook").json())
+
+
+def test_visit_counter_counts_once_per_visitor():
+    with client() as c:
+        first = c.post("/api/visits").json()["count"]
+        assert first >= 1
+        assert c.post("/api/visits").json()["count"] == first
+
+
+def test_live_socket_chat_and_cursors():
+    with client() as c:
+        with c.websocket_connect("/api/live") as a, c.websocket_connect("/api/live") as b:
+            assert a.receive_json()["t"] == "hello"
+            assert a.receive_json() == {"t": "online", "n": 1}
+            assert a.receive_json() == {"t": "online", "n": 2}
+            assert b.receive_json()["t"] == "hello"
+            assert b.receive_json() == {"t": "online", "n": 2}
+
+            a.send_json({"t": "cursor", "x": 10, "y": 20, "path": "/"})
+            moved = b.receive_json()
+            assert moved["t"] == "cursor" and (moved["x"], moved["y"]) == (10, 20)
+
+            a.send_json({"t": "chat", "name": "Ann", "text": "  hello   world  "})
+            for ws in (a, b):
+                said = ws.receive_json()
+                assert said["t"] == "chat" and said["text"] == "hello world" and said["name"] == "Ann"
+
+        with c.websocket_connect("/api/live") as d:
+            assert any(m["text"] == "hello world" for m in d.receive_json()["history"])
+
+
+def test_live_socket_rejects_foreign_origin():
+    import pytest
+    from starlette.websockets import WebSocketDisconnect
+
+    with client() as c, pytest.raises(WebSocketDisconnect):
+        with c.websocket_connect("/api/live", headers={"origin": "https://evil.example"}) as ws:
+            ws.receive_json()

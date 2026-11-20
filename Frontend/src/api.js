@@ -43,6 +43,11 @@ export const api = {
   education: () => request('/education'),
   contact: (msg) => request('/contact', { method: 'POST', body: msg }),
   rsv: (params) => request('/rsv/simulate', { method: 'POST', body: params }),
+  rsvDefaults: () => request('/rsv/defaults'),
+  health: () => request('/health'),
+  guestbook: () => request('/guestbook'),
+  signGuestbook: (entry) => request('/guestbook', { method: 'POST', body: entry }),
+  visit: () => request('/visits', { method: 'POST' }),
 
   login: async (password) => {
     const { token } = await request('/auth/login', { method: 'POST', body: { password } })
@@ -58,5 +63,7 @@ export const api = {
     updateProfile: (p) => request('/admin/profile', { method: 'PUT', body: p, auth: true }),
     messages: () => request('/admin/messages', { auth: true }),
     markRead: (id) => request(`/admin/messages/${id}/read`, { method: 'PATCH', auth: true }),
+    deleteGuestbookEntry: (id) => request(`/admin/guestbook/${id}`, { method: 'DELETE', auth: true }),
+    clearChat: () => request('/admin/chat', { method: 'DELETE', auth: true }),
   },
 }

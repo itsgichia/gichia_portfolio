@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { Win } from '../components/Retro'
 
 /* ---------- helpers to edit lists as plain text ---------- */
 const statsToText = (list = []) => list.map((m) => `${m.value} | ${m.label}`).join('\n')
@@ -338,6 +339,66 @@ function MessagesTab({ flash }) {
   )
 }
 
+function GuestbookTab({ flash }) {
+  const [entries, setEntries] = useState(null)
+  const [confirm, setConfirm] = useState(null)
+  const load = () => api.guestbook().then(setEntries).catch((e) => flash(e.message, true))
+  useEffect(() => {
+    load()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  const remove = async (id) => {
+    try {
+      await api.admin.deleteGuestbookEntry(id)
+      flash('Entry deleted.')
+      setConfirm(null)
+      load()
+    } catch (err) {
+      flash(err.message, true)
+    }
+  }
+  const clearChat = async () => {
+    try {
+      await api.admin.clearChat()
+      flash('Chat history cleared for new visitors.')
+    } catch (err) {
+      flash(err.message, true)
+    }
+  }
+  if (!entries) return <p>Loading…</p>
+  return (
+    <>
+      <button className="btn btn--ghost btn--small" onClick={clearChat}>
+        Clear chat history
+      </button>
+      {!entries.length && <p className="section__intro">No guestbook entries yet.</p>}
+      <ul className="admin-list" style={{ marginTop: '1rem' }}>
+        {entries.map((g) => (
+          <li key={g.id} style={{ alignItems: 'start' }}>
+            <div>
+              <strong>{g.name}</strong>
+              <div className="muted">
+                {g.site && `${g.site}, `}
+                {new Date(g.created_at).toLocaleString('en-AU')}
+              </div>
+              <p style={{ marginTop: '0.5rem', whiteSpace: 'pre-wrap', maxWidth: '70ch' }}>{g.message}</p>
+            </div>
+            {confirm === g.id ? (
+              <button className="btn btn--danger btn--small" onClick={() => remove(g.id)}>
+                Confirm delete
+              </button>
+            ) : (
+              <button className="btn btn--ghost btn--small" onClick={() => setConfirm(g.id)}>
+                Delete
+              </button>
+            )}
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
+
 export default function Admin() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('projects')
@@ -357,10 +418,12 @@ export default function Admin() {
     ['projects', 'Projects'],
     ['profile', 'Profile'],
     ['messages', 'Messages'],
+    ['guestbook', 'Guestbook'],
   ]
 
   return (
-    <div className="wrap admin">
+    <div className="page">
+    <Win title="control_panel" icon="⚙" className="admin">
       <div className="section__head">
         <h1 className="section__title">Site admin</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -393,6 +456,8 @@ export default function Admin() {
       {tab === 'projects' && <ProjectsTab flash={flash} />}
       {tab === 'profile' && <ProfileTab flash={flash} />}
       {tab === 'messages' && <MessagesTab flash={flash} />}
+      {tab === 'guestbook' && <GuestbookTab flash={flash} />}
+    </Win>
     </div>
   )
 }
