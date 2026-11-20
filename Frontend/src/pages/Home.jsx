@@ -7,7 +7,7 @@ import { AnzhfrMock, RhipMock } from '../components/ProjectMocks'
 import { ButtonWall, SydneyClock, Toggles, Virion, Win } from '../components/Retro'
 import useApi from '../components/useApi'
 
-const COLORS = ['#ff77a8', '#7fdbff', '#ffd36e', '#a6ff8f', '#c3a6ff', '#ff9e5e']
+const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
 const NAME_KEY = 'lab_chat_name'
 
 const readName = () => {
@@ -26,12 +26,12 @@ function Stars() {
     ['#work', 'projects'],
     ['/lab/rsv', 'rsv lab', true],
     ['#cv', 'résumé'],
-    ['#skills', 'inventory'],
+    ['#skills', 'skills'],
     ['#guestbook', 'guestbook'],
     ['#contact', 'contact'],
   ]
   return (
-    <Win title="stars" icon="✩">
+    <Win title="navigate" icon="✩">
       <ul className="stars">
         {links.map(([href, label, route]) => (
           <li key={href}>{route ? <Link to={href}>{label}</Link> : <a href={href}>{label}</a>}</li>
@@ -98,16 +98,16 @@ function SystemStatus({ guestbookOk }) {
 
 function Welcome({ profile }) {
   return (
-    <Win title="welcome!" icon="☾" id="welcome">
+    <Win title="welcome" icon="☾" id="welcome">
       <div className="welcome">
         <div>
           <h1 className="welcome__name">{profile?.name || 'Gichia Muiruri'}</h1>
           <p className="welcome__headline">{profile?.headline}</p>
           <p>{profile?.bio}</p>
           <p className="welcome__note">
-            This is my little corner of the web. Have a look around the rooms, poke the{' '}
-            <Link to="/lab/rsv">RSV model</Link>, and leave a note in the guestbook. The pink blob is a respiratory
-            syncytial virus. It's friendly here.
+            This site is a small, hand-built corner of the web. Browse the projects, try the{' '}
+            <Link to="/lab/rsv">RSV transmission model</Link>, which runs live, and leave a note in the guestbook if
+            you like. The teal mascot is a respiratory syncytial virus; it's harmless here.
           </p>
         </div>
       </div>
@@ -132,7 +132,7 @@ function Room({ p, color, n }) {
   return (
     <article id={p.slug} className="room" style={{ '--c': color }}>
       <p className="room__no">
-        room {String(n).padStart(3, '0')} ☾ {p.category}
+        {String(n).padStart(2, '0')} · {p.category}
         {p.status === 'live' && <span className="badge badge--live">live!</span>}
       </p>
       <h3 className="room__title">{p.title}</h3>
@@ -150,19 +150,19 @@ function Room({ p, color, n }) {
         {live &&
           (live.startsWith('/') ? (
             <Link className="btn" to={live}>
-              ▶ open live app
+              Open live app
             </Link>
           ) : (
             <a className="btn" href={live} target="_blank" rel="noreferrer">
-              ▶ open live app
+              Open live app
             </a>
           ))}
         <Link className="btn btn--ghost" to={`/projects/${p.slug}`}>
-          read more
+          Read more
         </Link>
         {p.repo_url && (
           <a className="btn btn--ghost" href={p.repo_url} target="_blank" rel="noreferrer">
-            {'</>'} code
+            Code
           </a>
         )}
       </div>
@@ -178,12 +178,12 @@ function Projects({ projects, error }) {
       {error && <p className="notice notice--error">Couldn't load projects: {error.message}</p>}
       <div className="rooms">
         {featured.map((p, i) => (
-          <Room key={p.id} p={p} n={101 + i} color={COLORS[i % COLORS.length]} />
+          <Room key={p.id} p={p} n={1 + i} color={COLORS[i % COLORS.length]} />
         ))}
       </div>
       {rest.length > 0 && (
         <>
-          <h3 className="subhead">☾ research archive</h3>
+          <h3 className="subhead">☾ research</h3>
           <ul className="archive">
             {rest.map((p) => (
               <li key={p.id}>
@@ -206,7 +206,7 @@ function Resume() {
   const exp = useApi(api.experience)
   const edu = useApi(api.education)
   return (
-    <Win title="résumé.txt" icon="✎" id="cv">
+    <Win title="résumé" icon="✎" id="cv">
       <h3 className="subhead">☾ experience</h3>
       <ul className="log">
         {(exp.data || []).map((e) => (
@@ -241,7 +241,7 @@ function Resume() {
 function Inventory({ profile }) {
   if (!profile?.skills?.length) return null
   return (
-    <Win title="inventory" icon="⚗" id="skills">
+    <Win title="skills" icon="⚗" id="skills">
       <dl className="inventory">
         {profile.skills.map((g, i) => (
           <div key={g.group}>
@@ -303,7 +303,7 @@ function Guestbook({ entries, reload }) {
         {state.done && <p className="notice" role="status">Thank you for signing! ✩</p>}
         <div>
           <button className="btn" type="submit" disabled={state.busy}>
-            {state.busy ? 'signing…' : '✎ sign the guestbook'}
+            {state.busy ? 'Signing…' : 'Sign the guestbook'}
           </button>
         </div>
       </form>
@@ -395,7 +395,7 @@ function Contact({ profile }) {
         {state.done && <p className="notice" role="status">Message sent. I'll get back to you soon.</p>}
         <div>
           <button className="btn" type="submit" disabled={state.busy}>
-            {state.busy ? 'sending…' : '✉ send message'}
+            {state.busy ? 'Sending…' : 'Send message'}
           </button>
         </div>
       </form>
@@ -430,9 +430,9 @@ function Chat() {
 
   return (
     <Win title="chat" icon="☁">
-      <p className="muted chat__online">{status === 'open' ? `${online} online` : 'chat is asleep zzz'}</p>
+      <p className="muted chat__online">{status === 'open' ? `${online} online` : 'chat is offline'}</p>
       <ol className="chat" ref={logRef} aria-live="polite" aria-label="Chat messages">
-        {messages.length === 0 && <li className="muted">it's quiet in here…</li>}
+        {messages.length === 0 && <li className="muted">No messages yet.</li>}
         {messages.map((m) => (
           <li key={`${m.at}-${m.name}-${m.text}`}>
             <b style={{ color: m.color }}>{m.name}:</b> {m.text}
@@ -447,20 +447,20 @@ function Chat() {
         <label className="sr-only" htmlFor="chat-text">
           Message
         </label>
-        <input id="chat-text" placeholder="say something nice" maxLength={280} value={text} onChange={(e) => setText(e.target.value)} />
+        <input id="chat-text" placeholder="say hello" maxLength={280} value={text} onChange={(e) => setText(e.target.value)} />
         <button className="btn btn--small" type="submit" disabled={status !== 'open'}>
-          send
+          Send
         </button>
       </form>
       {notice && <p className="muted">{notice}</p>}
-      <p className="muted chat__rules">be kind ☾ messages vanish when the server restarts</p>
+      <p className="muted chat__rules">Be kind. Messages are not stored and clear when the server restarts.</p>
     </Win>
   )
 }
 
 function Elsewhere({ profile }) {
   return (
-    <Win title="elsewhere" icon="✈">
+    <Win title="links" icon="✈">
       <ul className="stars">
         {profile?.github && (
           <li>
@@ -516,9 +516,9 @@ export default function Home() {
       <aside className="lobby__right">
         <Chat />
         <Elsewhere profile={p} />
-        <Win title="buttons" icon="▣">
+        <Win title="made with" icon="▣">
           <ButtonWall />
-          <p className="muted">↑ made with, made of, made by hand</p>
+          <p className="muted">Classic 88×31 buttons, drawn in CSS.</p>
         </Win>
       </aside>
     </div>

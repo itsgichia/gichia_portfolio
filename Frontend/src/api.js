@@ -44,6 +44,7 @@ export const api = {
   contact: (msg) => request('/contact', { method: 'POST', body: msg }),
   rsv: (params) => request('/rsv/simulate', { method: 'POST', body: params }),
   rsvDefaults: () => request('/rsv/defaults'),
+  rsvCompare: (body) => request('/rsv/compare', { method: 'POST', body }),
   health: () => request('/health'),
   guestbook: () => request('/guestbook'),
   signGuestbook: (entry) => request('/guestbook', { method: 'POST', body: entry }),

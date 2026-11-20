@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
@@ -146,3 +147,13 @@ class RsvIn(BaseModel):
     nirsevimab_efficacy: float = Field(0.8, ge=0, le=1)
     nirsevimab_seasonal_only: bool = False
     years: int = Field(4, ge=1, le=8)
+    mixing: Literal["homogeneous", "assortative"] = "homogeneous"
+
+
+class RsvScenario(BaseModel):
+    label: str = Field(min_length=1, max_length=60)
+    params: RsvIn
+
+
+class RsvCompareIn(BaseModel):
+    scenarios: list[RsvScenario] = Field(min_length=1, max_length=6)

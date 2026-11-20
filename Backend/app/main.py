@@ -29,6 +29,7 @@ from .schemas import (
     ProfileOut,
     ProjectIn,
     ProjectOut,
+    RsvCompareIn,
     RsvIn,
 )
 from .seed import seed
@@ -173,6 +174,11 @@ def rsv_defaults():
 @app.post("/api/rsv/simulate")
 def rsv_simulate(body: RsvIn):
     return rsv.run(body)
+
+
+@app.post("/api/rsv/compare")
+def rsv_compare(body: RsvCompareIn):
+    return rsv.compare([(s.label, s.params) for s in body.scenarios])
 
 
 # ---------------------------------------------------------------------------

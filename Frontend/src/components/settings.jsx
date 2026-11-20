@@ -1,11 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
 const KEY = 'lab_settings'
-const reduceMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-
 const DEFAULTS = {
-  rain: !reduceMotion,
-  sparkles: !reduceMotion,
+  rain: false,
+  sparkles: false,
   hideMyCursor: false,
   hideOthers: false,
 }

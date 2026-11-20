@@ -44,7 +44,7 @@ const VIRION = mirror([
   '.....o.o',
   '....s..s',
 ])
-const VIRION_COLORS = { o: '#3a1d6e', b: '#ff77a8', h: '#ffd0e4', s: '#ffd36e', e: '#1a1033', w: '#ffffff', p: '#ff4f8b', m: '#1a1033' }
+const VIRION_COLORS = { o: '#0f2a3a', b: '#2dd4bf', h: '#b8f5ec', s: '#f5b84a', e: '#0b1220', w: '#ffffff', p: '#14b8a6', m: '#0b1220' }
 
 export function Virion({ size = 64, className = '' }) {
   const h = VIRION.length
@@ -71,16 +71,16 @@ export function Marquee({ children }) {
 
 /** Classic 88x31 web buttons, drawn in CSS rather than borrowed GIFs. */
 const BUTTONS = [
-  { a: 'PYTHON', b: 'powered', bg: '#3572a5', fg: '#ffd43b' },
-  { a: 'R', b: 'stats inside', bg: '#1f65b7', fg: '#ffffff' },
-  { a: 'FastAPI', b: 'served', bg: '#05998b', fg: '#ffffff' },
-  { a: 'REACT', b: 'v19', bg: '#20232a', fg: '#61dafb' },
-  { a: 'SQL', b: 'is a vibe', bg: '#e48e00', fg: '#1a1033' },
-  { a: 'SEIRS', b: 'model ok', bg: '#ff77a8', fg: '#1a1033' },
-  { a: 'UNSW', b: 'HDS 2026', bg: '#ffd36e', fg: '#1a1033' },
-  { a: 'NO', b: 'cookies', bg: '#1a1033', fg: '#a6ff8f' },
-  { a: 'ANY', b: 'browser', bg: '#c3a6ff', fg: '#1a1033' },
-  { a: 'HAND', b: 'made', bg: '#7fdbff', fg: '#1a1033' },
+  { a: 'PYTHON', b: 'powered', bg: '#1e3a5f', fg: '#f5b84a' },
+  { a: 'R', b: 'stats inside', bg: '#1f4e8c', fg: '#ffffff' },
+  { a: 'FastAPI', b: 'served', bg: '#0f766e', fg: '#ffffff' },
+  { a: 'REACT', b: 'v19', bg: '#1b2640', fg: '#7cc4f8' },
+  { a: 'SQL', b: 'inside', bg: '#8a5a1b', fg: '#ffffff' },
+  { a: 'SEIRS', b: 'model ok', bg: '#2dd4bf', fg: '#0b1220' },
+  { a: 'UNSW', b: 'HDS 2026', bg: '#f5b84a', fg: '#0b1220' },
+  { a: 'NO', b: 'trackers', bg: '#0b1220', fg: '#6ee7a8' },
+  { a: 'ANY', b: 'browser', bg: '#9fb3d1', fg: '#0b1220' },
+  { a: 'HAND', b: 'made', bg: '#334155', fg: '#ffffff' },
 ]
 
 export function ButtonWall() {
@@ -139,7 +139,7 @@ export function Rain() {
     let frame
     const tick = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = 'rgba(160, 190, 255, 0.35)'
+      ctx.fillStyle = 'rgba(160, 190, 255, 0.25)'
       for (const d of drops) {
         ctx.fillRect(Math.round(d.x), Math.round(d.y), 1, d.l)
         d.y += d.v

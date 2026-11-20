@@ -3,14 +3,18 @@
 Structure follows the published RSV models for Western Australia by Hogan,
 Glass, Moore and colleagues (SEIRS form, monthly age classes in infancy,
 cosine seasonal forcing, age-specific susceptibility and infectiousness,
-maternal vaccination as a protected compartment). Mixing is homogeneous
-here; adding a POLYMOD contact matrix is the obvious next step.
+maternal vaccination as a protected compartment). Mixing is either
+homogeneous or age-assortative, using a synthetic contact kernel with a
+within-age-band term and a parent-child term; it is not fitted to survey
+data such as POLYMOD, so it shows the direction of the effect rather than
+a calibrated magnitude.
 
 Time is in days. All rates are per day.
 """
 
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass, field, asdict
 from functools import lru_cache
 
@@ -46,6 +50,8 @@ HOSP_GROUPS = {
 }
 
 PROTECTION_MONTHS = 6  # protected compartments exist for the first 6 monthly classes
+AGE_MID_YEARS = AGE_LOWER_YEARS + AGE_WIDTHS_DAYS / DAYS_PER_YEAR / 2
+MIXING_MODES = ("homogeneous", "assortative")
 
 
 @dataclass
@@ -90,6 +96,7 @@ class Params:
     r0: float = 1.6  # basic reproduction number (sets the transmission coefficient)
     seasonal_amplitude: float = 0.4  # b1
     peak_day: float = 100.0  # day of year with the highest transmission forcing (early April)
+    mixing: str = "homogeneous"  # homogeneous | assortative
     # Relative susceptibility of infants (maternal antibodies), Hogan et al.
     sigma_month0: float = 0.08
     sigma_month1_2: float = 0.45
@@ -120,9 +127,37 @@ class Params:
         # Uniform age distribution under constant births and cohort ageing.
         return AGE_WIDTHS_DAYS / LIFESPAN_DAYS
 
+    def contact_matrix(self) -> np.ndarray:
+        """Per-capita daily contact rates M[i, j]: contacts an i-person has with j-people.
+
+        Homogeneous mixing gives M[i, j] = n_j / N. The assortative kernel adds
+        strong within-age-band mixing and a parent-child band about 30 years
+        apart, with total contacts symmetric (M[i, j] n_i == M[j, i] n_j). The
+        overall scale is arbitrary because b0 is calibrated to R0.
+        """
+        if self.mixing not in MIXING_MODES:
+            raise ValueError(f"mixing must be one of {MIXING_MODES}")
+        n = self.age_fractions()
+        if self.mixing == "homogeneous":
+            return np.tile(n, (N_AGE, 1))
+        a = AGE_MID_YEARS[:, None]
+        b = AGE_MID_YEARS[None, :]
+        gap = np.abs(a - b)
+        kernel = 0.15 + np.exp(-((gap / 6.0) ** 2)) + 0.5 * np.exp(-(((gap - 30.0) / 8.0) ** 2))
+        total = kernel * n[:, None] * n[None, :]  # symmetric total contact volume
+        return total / n[:, None]
+
+    def next_generation(self, beta: float = 1.0) -> np.ndarray:
+        """K[i, j]: infections in age i caused by one infectious person in age j."""
+        n = self.age_fractions()
+        m = self.contact_matrix()
+        m_ji = m.T  # contacts a j-person has with i-people
+        return beta * self.infectious_days * self.sigma()[:, None] * m_ji * self.omega()[None, :]
+
     def b0(self) -> float:
-        """Transmission coefficient giving the requested R0 (homogeneous mixing)."""
-        return self.r0 / (self.infectious_days * float(np.sum(self.sigma() * self.omega() * self.age_fractions())))
+        """Transmission coefficient giving the requested R0 (spectral radius of the next-generation matrix)."""
+        rho = float(np.max(np.abs(np.linalg.eigvals(self.next_generation()))))
+        return self.r0 / rho
 
 
 # ---------------------------------------------------------------------------
@@ -146,12 +181,13 @@ def _initial_state(p: Params) -> np.ndarray:
 def _make_rhs(p: Params, maternal: Product | None, monoclonal: Product | None):
     sigma, omega = p.sigma(), p.omega()
     b0 = p.b0()
+    contact = p.contact_matrix()
+    n_by_age = p.population * p.age_fractions()
     eps, gam, delta = 1 / p.latent_days, 1 / p.infectious_days, 1 / p.immunity_days
     age_rate = 1 / AGE_WIDTHS_DAYS
     births_per_day = p.population / LIFESPAN_DAYS
     m_eff = np.array(maternal.efficacy_by_month) if maternal else np.zeros(PROTECTION_MONTHS)
     n_eff = np.array(monoclonal.efficacy_by_month) if monoclonal else np.zeros(PROTECTION_MONTHS)
-    n_pop = p.population
 
     def in_season(prod: Product, t: float) -> bool:
         doy = t % DAYS_PER_YEAR
@@ -161,11 +197,12 @@ def _make_rhs(p: Params, maternal: Product | None, monoclonal: Product | None):
         S, E, I, R = y[_S], y[_E], y[_I], y[_R]
         PM, PN = y[_PM], y[_PN]
         beta = b0 * (1 + p.seasonal_amplitude * np.cos(2 * np.pi * (t - p.peak_day) / DAYS_PER_YEAR))
-        lam = beta * np.dot(omega, I) / n_pop
+        lam = beta * (contact @ (omega * I / n_by_age))
 
         inf_S = sigma * lam * S
-        inf_PM = sigma[:PROTECTION_MONTHS] * (1 - m_eff) * lam * PM
-        inf_PN = sigma[:PROTECTION_MONTHS] * (1 - n_eff) * lam * PN
+        lam_infant = lam[:PROTECTION_MONTHS]
+        inf_PM = sigma[:PROTECTION_MONTHS] * (1 - m_eff) * lam_infant * PM
+        inf_PN = sigma[:PROTECTION_MONTHS] * (1 - n_eff) * lam_infant * PN
 
         dy = np.zeros_like(y)
         dS, dE, dI, dR = dy[_S], dy[_E], dy[_I], dy[_R]
@@ -208,9 +245,22 @@ def _make_rhs(p: Params, maternal: Product | None, monoclonal: Product | None):
     return rhs
 
 
+# scipy's LSODA wrapper is not re-entrant: two solves on different threads raise
+# IntegratorConcurrencyError. The API runs requests on a thread pool, so serialise.
+_SOLVER_LOCK = threading.Lock()
+
+
 def _solve(p: Params, y0, t0, t1, maternal=None, monoclonal=None, step=7.0):
     t_eval = np.arange(t0, t1 + 1e-9, step)
-    sol = solve_ivp(
+    with _SOLVER_LOCK:
+        sol = _integrate(p, y0, t0, t1, t_eval, maternal, monoclonal)
+    if not sol.success:
+        raise RuntimeError(sol.message)
+    return sol.t, sol.y
+
+
+def _integrate(p, y0, t0, t1, t_eval, maternal, monoclonal):
+    return solve_ivp(
         _make_rhs(p, maternal, monoclonal),
         (t0, t1),
         y0,
@@ -220,9 +270,6 @@ def _solve(p: Params, y0, t0, t1, maternal=None, monoclonal=None, step=7.0):
         atol=1e-6,
         max_step=5.0,
     )
-    if not sol.success:
-        raise RuntimeError(sol.message)
-    return sol.t, sol.y
 
 
 @lru_cache(maxsize=64)
@@ -296,7 +343,22 @@ def simulate(
     )
 
     weeks = (t[1:] - t0) / 7.0
+    births_per_year = p.population / LIFESPAN_DAYS * DAYS_PER_YEAR
+    doses = _doses_per_year(births_per_year, maternal, monoclonal)
+    averted = tot_b - tot_s
+    under6_b = h_base["0-2 months"] + h_base["3-5 months"]
+    under6_s = h_int["0-2 months"] + h_int["3-5 months"]
     return {
+        "doses": {
+            **doses,
+            "per_admission_averted": float(doses["total"] / averted) if averted > 1e-9 else None,
+        },
+        "peak_under6": {
+            "baseline": float(under6_b.max()),
+            "scenario": float(under6_s.max()),
+            "baseline_week": float(weeks[int(under6_b.argmax())]),
+            "scenario_week": float(weeks[int(under6_s.argmax())]),
+        },
         "weeks": weeks.tolist(),
         "day_of_year": ((t[1:]) % DAYS_PER_YEAR).tolist(),
         "hospitalisations": {
@@ -307,5 +369,21 @@ def simulate(
         "prevalence_all_ages": total_prev_base[1:].tolist(),
         "summary": summary,
         "params": {**asdict(p), "b0": p.b0()},
-        "births_per_year": p.population / LIFESPAN_DAYS * DAYS_PER_YEAR,
+        "births_per_year": births_per_year,
     }
+
+
+def _season_fraction(prod: Product) -> float:
+    return (prod.season_end_day - prod.season_start_day + 1) / DAYS_PER_YEAR
+
+
+def _doses_per_year(births_per_year: float, maternal: Product | None, monoclonal: Product | None) -> dict:
+    """Average yearly doses implied by the birth flows in the model."""
+    f_m = maternal.coverage * (_season_fraction(maternal) if maternal.seasonal_only else 1.0) if maternal else 0.0
+    f_n = 0.0
+    if monoclonal:
+        season = _season_fraction(monoclonal) if monoclonal.seasonal_only else 1.0
+        # The monoclonal is offered to infants not already covered by the maternal vaccine.
+        f_n = monoclonal.coverage * season * (1 - (maternal.coverage if maternal and not maternal.seasonal_only else 0.0))
+    m, n = births_per_year * f_m, births_per_year * f_n
+    return {"maternal": float(m), "nirsevimab": float(n), "total": float(m + n)}

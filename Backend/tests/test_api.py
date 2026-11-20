@@ -58,11 +58,42 @@ def test_rsv_simulation():
     with client() as c:
         r = c.post("/api/rsv/simulate", json={"maternal_coverage": 0.6, "nirsevimab_coverage": 0.0, "years": 2})
         assert r.status_code == 200
-        data = r.json()
-        assert len(data["weeks"]) == len(data["under6_baseline"]) == len(data["under6_scenario"])
-        first = data["summary"][0]
-        assert first["group"] == "0-2 months" and first["percent_averted"] > 30
+        body = r.json()
+        assert len(body["weeks"]) == len(body["under6_baseline"]) == len(body["under6_scenario"])
+        assert body["summary"][0]["group"] == "0-2 months" and body["summary"][0]["percent_averted"] > 30
         assert c.post("/api/rsv/simulate", json={"r0": 9}).status_code == 422
+        assert set(body["groups"]) == {"0-2 months", "3-5 months", "6-11 months", "12-23 months"}
+        assert len(body["groups"]["0-2 months"]["scenario"]) == len(body["weeks"]) == len(body["prevalence_all_ages"])
+        assert body["doses"]["nirsevimab"] == 0 and body["doses"]["maternal"] > 0
+        assert body["doses"]["per_admission_averted"] > 0
+        assert body["peak_under6"]["scenario"] < body["peak_under6"]["baseline"]
+        assert body["mixing"] == "homogeneous"
+
+
+def test_rsv_mixing_modes_and_validation():
+    with client() as c:
+        assert c.post("/api/rsv/simulate", json={"mixing": "random"}).status_code == 422
+        hom = c.post("/api/rsv/simulate", json={"years": 1}).json()
+        ass = c.post("/api/rsv/simulate", json={"years": 1, "mixing": "assortative"}).json()
+        assert ass["mixing"] == "assortative"
+        # Both are calibrated to the same R0, so the programme's effect is similar in size.
+        pct = lambda b: next(row for row in b["summary"] if row["group"] == "Under 2 years")["percent_averted"]
+        assert abs(pct(hom) - pct(ass)) < 10
+
+
+def test_rsv_compare():
+    with client() as c:
+        body = {
+            "scenarios": [
+                {"label": "None", "params": {"maternal_coverage": 0, "nirsevimab_coverage": 0, "years": 1}},
+                {"label": "Nirsevimab", "params": {"maternal_coverage": 0, "nirsevimab_coverage": 0.6, "years": 1}},
+            ]
+        }
+        rows = c.post("/api/rsv/compare", json=body).json()
+        assert [r["label"] for r in rows] == ["None", "Nirsevimab"]
+        assert rows[0]["percent_averted"] == 0 and rows[0]["doses_per_admission_averted"] is None
+        assert rows[1]["percent_averted"] > 10 and rows[1]["doses_per_year"] > 0
+        assert c.post("/api/rsv/compare", json={"scenarios": []}).status_code == 422
 
 
 def test_guestbook_sign_list_and_moderate():
@@ -115,3 +146,15 @@ def test_live_socket_rejects_foreign_origin():
     with client() as c, pytest.raises(WebSocketDisconnect):
         with c.websocket_connect("/api/live", headers={"origin": "https://evil.example"}) as ws:
             ws.receive_json()
+
+
+def test_rsv_handles_concurrent_requests():
+    """LSODA is not thread-safe; the solver is serialised so parallel requests still succeed."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    with client() as c:
+        def run(cov):
+            return c.post("/api/rsv/simulate", json={"nirsevimab_coverage": cov, "years": 1}).status_code
+
+        with ThreadPoolExecutor(4) as pool:
+            assert set(pool.map(run, [0.2, 0.4, 0.6, 0.8])) == {200}
