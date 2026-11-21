@@ -1,5 +1,6 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import PixelName from './PixelName'
 import { Rain, Sparkles, Virion } from './Retro'
 
 export function Banner() {
@@ -7,7 +8,8 @@ export function Banner() {
     <header className="banner">
       <Link to="/" className="banner__home" aria-label="Gichia Muiruri, home">
         <Virion size={56} className="bob" />
-        <span className="banner__title">Gichia Muiruri</span>
+        <PixelName text="Gichia Muiruri" />
+        <span className="sr-only">Gichia Muiruri</span>
       </Link>
       <p className="banner__sub">Health data science · biostatistics · software</p>
     </header>
