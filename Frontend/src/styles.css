@@ -1548,3 +1548,131 @@ input[type='range'] {
     height: auto !important;
   }
 }
+
+/* --------------------------------------------- chemistry methodology figure */
+.chem__grid {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 560px) {
+  .chem__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.chem__dock {
+  width: 100%;
+  border: 2px solid var(--line);
+  background: #07061a;
+}
+.chem__tag,
+.chem__score {
+  font-family: var(--pixel);
+  font-size: 9px;
+  fill: var(--ink-2);
+}
+.chem__score--val {
+  fill: var(--green);
+}
+.chem__atom {
+  font-family: var(--term);
+  font-size: 8px;
+  fill: var(--ink);
+}
+.chem__ligand {
+  animation: chem-dock 6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes chem-dock {
+  0% {
+    transform: translate(60px, 10px) rotate(-20deg);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  45% {
+    transform: translate(102px, 82px) rotate(8deg);
+  }
+  55% {
+    transform: translate(110px, 104px) rotate(0deg);
+  }
+  85% {
+    transform: translate(110px, 104px) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(110px, 104px) rotate(0deg);
+    opacity: 0;
+  }
+}
+.chem__residue {
+  animation: chem-bind 6s ease-in-out infinite;
+  opacity: 0.25;
+}
+@keyframes chem-bind {
+  0%,
+  50% {
+    opacity: 0.25;
+  }
+  60%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+.chem__kcal {
+  animation: chem-score 6s steps(1) infinite;
+}
+@keyframes chem-score {
+  0%,
+  55% {
+    opacity: 0;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chem__ligand,
+  .chem__residue,
+  .chem__kcal {
+    animation: none;
+    opacity: 1;
+  }
+  .chem__ligand {
+    transform: translate(110px, 104px);
+  }
+}
+.chem__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.chem__steps li {
+  display: flex;
+  gap: 0.6rem;
+  align-items: baseline;
+  font-size: var(--s-14);
+}
+.chem__steps b {
+  display: block;
+  color: var(--ink);
+}
+.chem__steps small {
+  display: block;
+  color: var(--ink-2);
+  font-size: 0.8rem;
+}
+.chem__no {
+  font-family: var(--pixel);
+  font-size: 0.7rem;
+  color: var(--pink);
+  flex: 0 0 1.4rem;
+}
