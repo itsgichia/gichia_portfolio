@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { Win } from '../components/Retro'
 
 /* ---------- helpers to edit lists as plain text ---------- */
 const statsToText = (list = []) => list.map((m) => `${m.value} | ${m.label}`).join('\n')
@@ -281,6 +282,9 @@ function ProfileTab({ flash }) {
         <Field id="f-loc" label="Location">
           <input id="f-loc" value={p.location} onChange={set('location')} />
         </Field>
+        <Field id="f-phone" label="Phone" hint="Shown in the contact panel when set">
+          <input id="f-phone" value={p.phone || ''} onChange={set('phone')} />
+        </Field>
         <Field id="f-li" label="LinkedIn">
           <input id="f-li" value={p.linkedin || ''} onChange={set('linkedin')} />
         </Field>
@@ -338,6 +342,7 @@ function MessagesTab({ flash }) {
   )
 }
 
+
 export default function Admin() {
   const navigate = useNavigate()
   const [tab, setTab] = useState('projects')
@@ -360,7 +365,8 @@ export default function Admin() {
   ]
 
   return (
-    <div className="wrap admin">
+    <div className="page">
+    <Win title="control_panel" icon="⚙" className="admin">
       <div className="section__head">
         <h1 className="section__title">Site admin</h1>
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -393,6 +399,7 @@ export default function Admin() {
       {tab === 'projects' && <ProjectsTab flash={flash} />}
       {tab === 'profile' && <ProfileTab flash={flash} />}
       {tab === 'messages' && <MessagesTab flash={flash} />}
+    </Win>
     </div>
   )
 }

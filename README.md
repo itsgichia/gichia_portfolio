@@ -2,9 +2,10 @@
 
 My portfolio site, built like RHIP Connect: a React front end, a FastAPI backend and PostgreSQL, deployed on Railway.
 
-- **Public site:** project cards with live links, experience, education, skills and contact.
+- **Public site:** project cards with live links, skills and contact details, in a retro "lab" style with rain and cursor sparkles.
 - **RSV Lab** (`/lab/rsv`): an age-structured RSV transmission model that runs live in Python. The model has its own repository, `rsv-transmission-model`.
-- **Admin** (`/admin`): sign in to add or edit projects, publish or hide drafts, update the profile and read contact messages.
+- **Sequence Lab** (`/lab/seq`): sequence statistics, ORF finding, pairwise alignment and neighbour-joining trees, written from scratch in `Backend/app/bio.py`.
+- **Admin** (`/admin`): sign in to add or edit projects, publish or hide drafts, update the profile (including the phone number shown under Contact) and read contact messages.
 
 ```
 Dashboard/
@@ -34,6 +35,8 @@ npm install
 npm run dev                 # http://localhost:5173 (API calls are proxied to port 8000)
 ```
 
+The front end has no content of its own: if the backend is not running on port 8000, the projects panel shows an error and the "systems status" widget reports `lab.api FAIL`. Start the backend first.
+
 The first start creates `portfolio.db` (SQLite) and loads the site content from `Backend/app/seed.py`. To reload that content from scratch, run `python -m app.seed --reset`.
 
 Tests: `cd Backend && pytest -q`
@@ -43,7 +46,7 @@ Tests: `cd Backend && pytest -q`
 **Railway (backend)**
 1. Create a project from this repo. It uses the `Dockerfile` and `railway.json`.
 2. Add a **PostgreSQL** database; Railway provides `DATABASE_URL`.
-3. Set `ADMIN_PASSWORD`, `SECRET_KEY` (`python -c "import secrets; print(secrets.token_hex(32))"`) and `CORS_ORIGINS` (your Vercel address, e.g. `https://gichia.vercel.app`).
+3. Set `ADMIN_PASSWORD`, `SECRET_KEY` (`python -c "import secrets; print(secrets.token_hex(32))"`) and `CORS_ORIGINS` (your Vercel address, e.g. `https://gichia-portfolio.vercel.app`). Vercel preview URLs (`gichia-portfolio-*.vercel.app`) are allowed automatically; override the pattern with `CORS_ORIGIN_REGEX` if the project is renamed.
 4. Deploy and generate a domain. Health check: `/api/health`.
 
 **Vercel (front end)**

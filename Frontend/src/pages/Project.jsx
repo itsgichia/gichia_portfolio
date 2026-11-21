@@ -1,27 +1,36 @@
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
 import useApi from '../components/useApi'
+import { Win } from '../components/Retro'
 
 export default function Project() {
   const { slug } = useParams()
   const { data: p, error, loading } = useApi(() => api.project(slug), [slug])
 
-  if (loading) return <div className="wrap article">Loading…</div>
+  if (loading)
+    return (
+      <div className="page">
+        <Win title="loading…">Loading…</Win>
+      </div>
+    )
   if (error || !p)
     return (
-      <div className="wrap article">
-        <h1 className="article__title">Project not found</h1>
-        <p className="article__lede">
-          It may have been renamed. <Link to="/#work">Go back to all projects</Link>.
-        </p>
+      <div className="page">
+        <Win title="404.txt">
+          <h1 className="article__title">Project not found</h1>
+          <p className="article__lede">
+            It may have been renamed. <Link to="/projects">Go back to all projects</Link>.
+          </p>
+        </Win>
       </div>
     )
 
   const live = p.live_url
   return (
-    <article className="wrap article">
-      <Link className="back" to="/#work">
-        All projects
+    <div className="page">
+    <Win title={`${p.slug}.html`} className="article">
+      <Link className="back" to="/projects">
+        ← all projects
       </Link>
       <h1 className="article__title">{p.title}</h1>
       <p className="article__lede">{p.tagline}</p>
@@ -100,6 +109,7 @@ export default function Project() {
           )}
         </dl>
       </div>
-    </article>
+    </Win>
+    </div>
   )
 }

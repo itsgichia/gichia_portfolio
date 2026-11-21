@@ -19,6 +19,7 @@ class Profile(Base):
     bio: Mapped[str] = mapped_column(Text, default="")
     location: Mapped[str] = mapped_column(String(120), default="")
     email: Mapped[str] = mapped_column(String(200), default="")
+    phone: Mapped[str] = mapped_column(String(60), default="")
     github: Mapped[str | None] = mapped_column(String(300), nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String(300), nullable=True)
     availability: Mapped[str] = mapped_column(String(200), default="")

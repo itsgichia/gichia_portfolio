@@ -9,32 +9,55 @@ from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import select
+from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
-from . import rsv
+from . import bio, rsv
 from .auth import admin_enabled, check_password, issue_token, require_admin
 from .db import Base, SessionLocal, engine, get_db
 from .models import Education, Experience, Message, Profile, Project
 from .schemas import (
+    BioAlignIn,
+    BioSeqIn,
+    BioTreeIn,
+    BioVariantsIn,
     EducationOut,
     ExperienceIn,
     ExperienceOut,
     LoginIn,
     MessageIn,
     MessageOut,
+    PgxPanelIn,
     ProfileIn,
     ProfileOut,
     ProjectIn,
     ProjectOut,
+    RsvCompareIn,
     RsvIn,
 )
 from .seed import seed
 
 logging.basicConfig(level=logging.INFO)
 
+def _add_missing_columns() -> None:
+    """Add columns that were introduced after a table was first created (no Alembic here)."""
+    inspector = inspect(engine)
+    with engine.begin() as conn:
+        for table in Base.metadata.sorted_tables:
+            if not inspector.has_table(table.name):
+                continue
+            existing = {c["name"] for c in inspector.get_columns(table.name)}
+            for col in table.columns:
+                if col.name not in existing:
+                    ddl = f"ALTER TABLE {table.name} ADD COLUMN {col.name} {col.type.compile(engine.dialect)}"
+                    if col.default is not None and isinstance(col.default.arg, (str, int)):
+                        ddl += f" DEFAULT {col.default.arg!r}"
+                    conn.execute(text(ddl))
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    _add_missing_columns()
     Base.metadata.create_all(engine)
     with SessionLocal() as db:
         seed(db)
@@ -44,9 +67,12 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(title="Gichia Muiruri Portfolio API", version="2.0.0", lifespan=lifespan)
 
 _origins = [o.strip() for o in os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",") if o.strip()]
+# Vercel preview deployments get a fresh hostname each time; allow them by pattern.
+_origin_regex = os.getenv("CORS_ORIGIN_REGEX", r"https://gichia-portfolio(-[a-z0-9-]+)?\.vercel\.app")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_origins,
+    allow_origin_regex=_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -96,21 +122,32 @@ def list_education(db: Session = Depends(get_db)):
 _contact_log: dict[str, deque] = defaultdict(deque)
 
 
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
+
+
+def _over_limit(log: dict[str, deque], key: str, limit: int, window: float = 3600) -> bool:
+    """Record a hit for key and report whether it exceeds limit within window seconds."""
+    now = time.time()
+    hits = log[key]
+    while hits and now - hits[0] > window:
+        hits.popleft()
+    if len(hits) >= limit:
+        return True
+    hits.append(now)
+    return False
+
+
 @app.post("/api/contact", status_code=status.HTTP_201_CREATED)
 def contact(msg: MessageIn, request: Request, db: Session = Depends(get_db)):
     if msg.website:  # honeypot field filled in: quietly accept and drop
         return {"ok": True}
-    ip = request.client.host if request.client else "unknown"
-    now = time.time()
-    hits = _contact_log[ip]
-    while hits and now - hits[0] > 3600:
-        hits.popleft()
-    if len(hits) >= 5:
+    if _over_limit(_contact_log, _client_ip(request), 5):
         raise HTTPException(429, "Too many messages. Please try again later or email me directly.")
-    hits.append(now)
     db.add(Message(name=msg.name, email=msg.email, organisation=msg.organisation, body=msg.body))
     db.commit()
     return {"ok": True}
+
 
 
 @app.get("/api/rsv/defaults")
@@ -121,6 +158,53 @@ def rsv_defaults():
 @app.post("/api/rsv/simulate")
 def rsv_simulate(body: RsvIn):
     return rsv.run(body)
+
+
+@app.post("/api/rsv/compare")
+def rsv_compare(body: RsvCompareIn):
+    return rsv.compare([(s.label, s.params) for s in body.scenarios])
+
+
+def _bio(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except bio.BioError as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@app.get("/api/bio/examples")
+def bio_examples():
+    return bio.examples()
+
+
+@app.post("/api/bio/stats")
+def bio_stats(body: BioSeqIn):
+    return _bio(bio.stats, body.sequence, body.min_orf_aa)
+
+
+@app.post("/api/bio/align")
+def bio_align(body: BioAlignIn):
+    return _bio(bio.align, body.a, body.b, body.mode, body.match, body.mismatch, body.gap)
+
+
+@app.post("/api/bio/tree")
+def bio_tree(body: BioTreeIn):
+    return _bio(bio.tree, body.fasta, body.distance)
+
+
+@app.post("/api/bio/variants")
+def bio_variants(body: BioVariantsIn):
+    return _bio(bio.call_variants, body.reference, body.sample)
+
+
+@app.get("/api/bio/pgx/catalogue")
+def bio_pgx_catalogue():
+    return bio.pgx_catalogue()
+
+
+@app.post("/api/bio/pgx")
+def bio_pgx(body: PgxPanelIn):
+    return _bio(bio.pgx_panel, [(g.gene, g.allele_1, g.allele_2) for g in body.genotypes])
 
 
 # ---------------------------------------------------------------------------

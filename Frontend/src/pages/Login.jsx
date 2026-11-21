@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../api'
+import { Win } from '../components/Retro'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -23,8 +24,9 @@ export default function Login() {
   }
 
   return (
-    <div className="wrap">
-      <form className="form login" onSubmit={submit}>
+    <div className="page">
+      <Win title="staff_login" icon="⚿" className="login">
+      <form className="form" onSubmit={submit}>
         <h1 style={{ fontSize: 'var(--s-25)' }}>Sign in to edit the site</h1>
         <div className="field">
           <label htmlFor="pw">Password</label>
@@ -41,6 +43,7 @@ export default function Login() {
           </button>
         </div>
       </form>
+      </Win>
     </div>
   )
 }

@@ -1,6 +1,7 @@
 from datetime import datetime
+from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class Stat(BaseModel):
@@ -26,6 +27,7 @@ class ProfileIn(BaseModel):
     bio: str = ""
     location: str = ""
     email: str = ""
+    phone: str = ""
     github: str | None = None
     linkedin: str | None = None
     availability: str = ""
@@ -123,3 +125,48 @@ class RsvIn(BaseModel):
     nirsevimab_efficacy: float = Field(0.8, ge=0, le=1)
     nirsevimab_seasonal_only: bool = False
     years: int = Field(4, ge=1, le=8)
+    mixing: Literal["homogeneous", "assortative"] = "homogeneous"
+
+
+class RsvScenario(BaseModel):
+    label: str = Field(min_length=1, max_length=60)
+    params: RsvIn
+
+
+class RsvCompareIn(BaseModel):
+    scenarios: list[RsvScenario] = Field(min_length=1, max_length=6)
+
+
+class BioSeqIn(BaseModel):
+    sequence: str = Field(min_length=1, max_length=20000)
+    min_orf_aa: int = Field(30, ge=10, le=500)
+
+
+class BioAlignIn(BaseModel):
+    a: str = Field(min_length=1, max_length=20000)
+    b: str = Field(min_length=1, max_length=20000)
+    mode: Literal["global", "local"] = "global"
+    match: int = Field(2, ge=0, le=10)
+    mismatch: int = Field(-1, ge=-10, le=0)
+    gap: int = Field(-2, ge=-10, le=0)
+
+
+class BioTreeIn(BaseModel):
+    fasta: str = Field(min_length=1, max_length=60000)
+    distance: Literal["jc", "p"] = "jc"
+
+
+class BioVariantsIn(BaseModel):
+    reference: str = Field(min_length=3, max_length=20000)
+    sample: str = Field(min_length=1, max_length=20000)
+
+
+class PgxGenotype(BaseModel):
+    gene: str = Field(min_length=2, max_length=20)
+    allele_1: str = Field(min_length=1, max_length=10)
+    allele_2: str = Field(min_length=1, max_length=10)
+
+
+class PgxPanelIn(BaseModel):
+    genotypes: list[PgxGenotype] = Field(min_length=1, max_length=8)
+

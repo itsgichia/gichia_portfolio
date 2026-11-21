@@ -1,41 +1,47 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useEffect } from 'react'
+import PixelName from './PixelName'
+import { Rain, Sparkles, Virion } from './Retro'
+
+export function Banner() {
+  return (
+    <header className="banner">
+      <Link to="/" className="banner__home" aria-label="Gichia Muiruri, home">
+        <Virion size={56} className="bob" />
+        <PixelName text="Gichia Muiruri" />
+        <span className="sr-only">Gichia Muiruri</span>
+      </Link>
+      <p className="banner__sub">Health data science · biostatistics · software</p>
+    </header>
+  )
+}
 
 export function Nav() {
   return (
-    <header className="nav">
-      <div className="wrap">
-        <Link to="/" className="nav__name">
-          Gichia<span>.</span>
-        </Link>
-        <nav aria-label="Main">
-          <ul className="nav__links">
-            <li>
-              <a href="/#work">Projects</a>
-            </li>
-            <li>
-              <NavLink to="/lab/rsv">RSV Lab</NavLink>
-            </li>
-            <li>
-              <a href="/#contact">Contact</a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
+    <nav className="topnav" aria-label="Main">
+      <ul>
+        <li>
+          <NavLink to="/" end>
+            Home
+          </NavLink>
+        </li>
+        <li>
+          <NavLink to="/projects">Projects</NavLink>
+        </li>
+        <li>
+          <a href="/#contact">Contact</a>
+        </li>
+      </ul>
+    </nav>
   )
 }
 
 export function Footer() {
   return (
     <footer className="footer">
-      <div className="wrap">
-        <p>© 2026 Gichia Muiruri</p>
-        <p>React, FastAPI, Three.js</p>
-        <p>
-          <Link to="/admin">Admin</Link>
-        </p>
-      </div>
+      <p>
+        © 2026 Gichia Muiruri · built with React and FastAPI · <Link to="/admin">Admin</Link>
+      </p>
     </footer>
   )
 }
@@ -62,11 +68,16 @@ export default function Layout() {
         Skip to content
       </a>
       <ScrollManager />
-      <Nav />
-      <main id="main">
-        <Outlet />
-      </main>
-      <Footer />
+      <Rain />
+      <Sparkles />
+      <div className="hotel">
+        <Banner />
+        <Nav />
+        <main id="main">
+          <Outlet />
+        </main>
+        <Footer />
+      </div>
     </>
   )
 }

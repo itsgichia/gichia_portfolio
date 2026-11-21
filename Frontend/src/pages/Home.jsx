@@ -1,178 +1,216 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import HeroFigure from '../components/HeroFigure'
-import { AnzhfrMock, RhipMock } from '../components/ProjectMocks'
-import ThreeBackground from '../components/ThreeBackground'
+import { ButtonWall, SydneyClock, Virion, Win } from '../components/Retro'
 import useApi from '../components/useApi'
 
-const COLORS = ['#4fffb0', '#4fa8ff', '#ffd166', '#ff6b9d', '#a8ff78', '#c8f135']
+import { COLORS } from '../components/ProjectCard'
 
-function Hero({ profile, projects }) {
-  const featured = projects.filter((p) => p.featured)
+/* ------------------------------------------------------------------ left */
+
+function Stars() {
+  const links = [
+    ['#welcome', 'welcome'],
+    ['/projects', 'projects', true],
+    ['/lab/rsv', 'rsv lab', true],
+    ['/lab/seq', 'sequence lab', true],
+    ['#skills', 'skills'],
+    ['#contact', 'contact'],
+  ]
   return (
-    <section className="hero">
-      <ThreeBackground />
-      <div className="wrap hero__content">
+    <Win title="navigate" icon="✩">
+      <ul className="stars">
+        {links.map(([href, label, route]) => (
+          <li key={href}>{route ? <Link to={href}>{label}</Link> : <a href={href}>{label}</a>}</li>
+        ))}
+      </ul>
+    </Win>
+  )
+}
+
+function CurrentStatus({ profile }) {
+  return (
+    <Win title="current status" icon="☾">
+      <div className="status">
+        <Virion size={40} className="bob" />
         <div>
-          {profile?.availability && <p className="hero__status">{profile.availability}</p>}
-          <h1 className="hero__name">{profile?.name || 'Gichia Muiruri'}</h1>
-          <p className="hero__headline">{profile?.headline}</p>
-          <p className="hero__bio">{profile?.bio}</p>
-          <div className="hero__actions">
-            <a className="btn" href="#work">
-              View projects
-            </a>
-            <a className="btn btn--ghost" href="#contact">
-              Contact
-            </a>
-          </div>
+          <p className="status__line">{profile?.availability || 'Open to full-time roles'}</p>
+          <p className="muted">
+            {profile?.location || 'Sydney'} ☾ <SydneyClock />
+          </p>
         </div>
-        {featured.length > 0 && (
-          <nav className="hero__index" aria-label="Featured projects">
-            {featured.map((p) => (
-              <a key={p.id} href={`#${p.slug}`}>
-                <span>
-                  <strong>{p.title}</strong>
-                  <em>{p.category}</em>
-                </span>
-                {p.status === 'live' && <span className="badge">Live</span>}
-              </a>
-            ))}
-          </nav>
+      </div>
+    </Win>
+  )
+}
+
+function useCheck(fn) {
+  const [ok, setOk] = useState(null)
+  useEffect(() => {
+    fn()
+      .then(() => setOk(true))
+      .catch(() => setOk(false))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+  return ok
+}
+
+function SystemStatus() {
+  const apiOk = useCheck(api.health)
+  const rsvOk = useCheck(api.rsvDefaults)
+  const rows = [
+    ['lab.api', apiOk],
+    ['rsv.model', rsvOk],
+  ]
+  return (
+    <Win title="systems status" icon="⚙">
+      <ul className="sys">
+        {rows.map(([name, ok]) => (
+          <li key={name}>
+            <span className={ok == null ? 'sys--wait' : ok ? 'sys--ok' : 'sys--fail'}>
+              [{ok == null ? ' .. ' : ok ? ' OK ' : 'FAIL'}]
+            </span>{' '}
+            {name}
+          </li>
+        ))}
+      </ul>
+    </Win>
+  )
+}
+
+function Elsewhere({ profile }) {
+  return (
+    <Win title="links" icon="✈">
+      <ul className="stars">
+        {profile?.github && (
+          <li>
+            <a href={profile.github} target="_blank" rel="noreferrer">
+              github
+            </a>
+          </li>
         )}
-      </div>
-    </section>
-  )
-}
-
-function ProjectVisual({ p, color }) {
-  if (p.image_url) return <img className="product__shot" src={p.image_url} alt={`Screenshot of ${p.title}`} loading="lazy" />
-  if (p.slug === 'rsv-transmission-lab') return <HeroFigure />
-  if (p.slug === 'rhip-connect') return <RhipMock />
-  if (p.slug === 'anzhfr-cohort-builder') return <AnzhfrMock />
-  return (
-    <div className="product__blank" style={{ '--c': color }} aria-hidden="true">
-      <span>{p.title}</span>
-    </div>
-  )
-}
-
-function ProductCard({ p, color, flip }) {
-  const live = p.live_url
-  return (
-    <article id={p.slug} className={`product${flip ? ' product--flip' : ''}`}>
-      <div className="product__text">
-        <p className="product__kind">
-          {p.category}
-          {p.status === 'live' && <span className="badge">Live</span>}
-        </p>
-        <h3 className="product__title">{p.title}</h3>
-        <p className="product__tagline">{p.tagline}</p>
-        <p className="product__body">{p.approach}</p>
-        <ul className="tags">
-          {p.tags.map((t) => (
-            <li key={t}>{t}</li>
-          ))}
-        </ul>
-        <div className="product__actions">
-          {live &&
-            (live.startsWith('/') ? (
-              <Link className="btn" to={live}>
-                Open live app
-              </Link>
-            ) : (
-              <a className="btn" href={live} target="_blank" rel="noreferrer">
-                Open live app
-              </a>
-            ))}
-          <Link className="btn btn--ghost" to={`/projects/${p.slug}`}>
-            Read more
-          </Link>
-          {p.repo_url && (
-            <a className="btn btn--ghost" href={p.repo_url} target="_blank" rel="noreferrer">
-              Code
+        {profile?.linkedin && (
+          <li>
+            <a href={profile.linkedin} target="_blank" rel="noreferrer">
+              linkedin
             </a>
-          )}
+          </li>
+        )}
+        <li>
+          <a href="https://github.com/itsgichia/rsv-transmission-model" target="_blank" rel="noreferrer">
+            rsv model source
+          </a>
+        </li>
+      </ul>
+    </Win>
+  )
+}
+
+/* ---------------------------------------------------------------- centre */
+
+function Welcome({ profile }) {
+  return (
+    <Win title="welcome" icon="☾" id="welcome">
+      <div className="welcome">
+        <div>
+          <h1 className="welcome__name">{profile?.name || 'Gichia Muiruri'}</h1>
+          <p className="welcome__headline">{profile?.headline}</p>
+          <p>{profile?.bio}</p>
+          <p className="welcome__note">
+            This site is a small, hand-built corner of the web. The highlights are below and the{' '}
+            <Link to="/projects">full project list</Link> is one page over; the <Link to="/lab/rsv">RSV lab</Link>{' '}
+            runs live. The teal mascot is a respiratory
+            syncytial virus; it's harmless here.
+          </p>
         </div>
       </div>
-      <div className="product__visual">
-        <ProjectVisual p={p} color={color} />
-      </div>
-    </article>
+    </Win>
   )
 }
 
-function Projects({ projects }) {
+function Featured({ projects, error, loading }) {
   const featured = projects.filter((p) => p.featured)
-  const rest = projects.filter((p) => !p.featured)
+  const count = projects.length
   return (
-    <section className="section" id="work">
-      <div className="wrap">
-        <p className="eyebrow">Selected work</p>
-        <h2 className="section__title">Projects</h2>
-        <div className="products">
-          {featured.map((p, i) => (
-            <ProductCard key={p.id} p={p} color={COLORS[i % COLORS.length]} flip={i % 2 === 1} />
-          ))}
+    <Win title="featured projects" icon="✩" id="work">
+      {loading && <p className="muted">Loading projects…</p>}
+      {error && (
+        <p className="notice notice--error" role="alert">
+          Couldn't load projects from the API ({error.message}). If you're running this locally, start the backend
+          on port 8000 and refresh.
+        </p>
+      )}
+      <ol className="featured">
+        {featured.map((p, i) => (
+          <li key={p.id} style={{ '--c': COLORS[i % COLORS.length] }}>
+            <p className="room__no">
+              {String(i + 1).padStart(2, '0')} · {p.category}
+              {p.status === 'live' && <span className="badge badge--live">live</span>}
+            </p>
+            <h3 className="featured__title">
+              <Link to={p.live_url?.startsWith('/') ? p.live_url : `/projects/${p.slug}`}>{p.title}</Link>
+            </h3>
+            <p className="room__tagline">{p.tagline}</p>
+          </li>
+        ))}
+      </ol>
+      {count > 0 && (
+        <div className="actions">
+          <Link className="btn" to="/projects">
+            All {count} projects, by area
+          </Link>
         </div>
-        {rest.length > 0 && (
-          <>
-            <h3 className="more__title">Research</h3>
-            <div className="more">
-            {rest.map((p) => (
-              <Link key={p.id} to={`/projects/${p.slug}`} className="more__item">
-                <span className="product__kind">{p.category}</span>
-                <strong>{p.title}</strong>
-                <span>{p.tagline}</span>
-              </Link>
-            ))}
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+      )}
+    </Win>
+  )
+}
+
+function Inventory({ profile }) {
+  if (!profile?.skills?.length) return null
+  return (
+    <Win title="skills" icon="⚗" id="skills">
+      <dl className="inventory">
+        {profile.skills.map((g, i) => (
+          <div key={g.group}>
+            <dt style={{ color: COLORS[i % COLORS.length] }}>{g.group}</dt>
+            <dd>
+              <ul className="tags">
+                {g.items.map((s) => (
+                  <li key={s}>{s}</li>
+                ))}
+              </ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Win>
   )
 }
 
 function Contact({ profile }) {
-  const links = [
-    { label: 'Email', value: profile?.email, href: profile?.email && `mailto:${profile.email}` },
-    { label: 'LinkedIn', value: 'gichia-muiruri', href: profile?.linkedin },
-    { label: 'GitHub', value: 'itsgichia', href: profile?.github },
-    { label: 'Location', value: profile?.location, href: null },
-  ].filter((l) => l.value)
+  const phone = profile?.phone?.trim()
+  const rows = [
+    { label: 'email', value: profile?.email, href: profile?.email && `mailto:${profile.email}` },
+    { label: 'linkedin', value: profile?.linkedin?.replace(/^https?:\/\/(www\.)?/, ''), href: profile?.linkedin },
+    { label: 'phone', value: phone, href: phone && `tel:${phone.replace(/[^\d+]/g, '')}` },
+  ].filter((r) => r.value && r.href)
+
   return (
-    <section className="section" id="contact">
-      <div className="wrap contact">
-        <div>
-          <p className="eyebrow">Get in touch</p>
-          <h2 className="section__title">Contact</h2>
-          <p className="section__intro">
-            Open to full-time roles in health data science, biostatistics, research and software engineering. The
-            quickest way to reach me is email.
-          </p>
-          {profile?.email && (
-            <a className="btn" href={`mailto:${profile.email}`} style={{ marginTop: '1.75rem' }}>
-              Send an email
-            </a>
-          )}
-        </div>
-        <ul className="contact__rows">
-          {links.map((l) => (
-            <li key={l.label}>
-              <span className="contact__label">{l.label}</span>
-              {l.href ? (
-                <a href={l.href} target={l.href.startsWith('mailto') ? undefined : '_blank'} rel="noreferrer">
-                  {l.value}
-                </a>
-              ) : (
-                <span>{l.value}</span>
-              )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
+    <Win title="contact" icon="☎" id="contact">
+      <p>Open to full-time roles in health data science, biostatistics, research and software engineering.</p>
+      <dl className="contact">
+        {rows.map((r) => (
+          <div key={r.label}>
+            <dt>{r.label}</dt>
+            <dd>
+              <a href={r.href} target={r.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">
+                {r.value}
+              </a>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </Win>
   )
 }
 
@@ -182,17 +220,23 @@ export default function Home() {
   const p = profile.data
 
   return (
-    <>
-      <Hero profile={p} projects={projects.data || []} />
-      {projects.error && (
-        <div className="wrap">
-          <p className="notice notice--error" style={{ marginTop: '2rem' }}>
-            Couldn't load projects: {projects.error.message}
-          </p>
-        </div>
-      )}
-      <Projects projects={projects.data || []} />
-      <Contact profile={p} />
-    </>
+    <div className="lobby">
+      <aside className="lobby__left">
+        <Stars />
+        <CurrentStatus profile={p} />
+        <SystemStatus />
+        <Elsewhere profile={p} />
+        <Win title="made with" icon="▣">
+          <ButtonWall />
+        </Win>
+      </aside>
+
+      <div className="lobby__main">
+        <Welcome profile={p} />
+        <Featured projects={projects.data || []} error={projects.error} loading={projects.loading} />
+        <Inventory profile={p} />
+        <Contact profile={p} />
+      </div>
+    </div>
   )
 }

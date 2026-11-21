@@ -12,7 +12,6 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 COPY Backend/requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 COPY Backend/app ./app
-COPY Backend/rsvmodel ./rsvmodel
 COPY --from=web /web/dist ./static
 EXPOSE 8000
 CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*'"]
