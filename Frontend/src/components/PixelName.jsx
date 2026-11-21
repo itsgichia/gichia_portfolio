@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'react'
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /**
- * The site title as a pixel logo in the dimden.dev style: flat teal letters
+ * The site title as a pixel logo in the dimden.dev style: flat white letters
  * crossed by strong horizontal stripes, a near-black outline, and a ring of
  * dithered static around the outline that shimmers. The glyph mask comes from
  * rendering the text in a pixel font and downsampling by coverage.
@@ -15,10 +15,10 @@ export default function PixelName({ text = 'Gichia Muiruri', cell = 4 }) {
     const canvas = ref.current
     if (!canvas) return
     const FONT = '700 {px}px "Pixelify Sans", "Silkscreen", monospace'
-    const FILL = '#49c7b4'
-    const STRIPE = '#1f7f74'
+    const FILL = '#ffffff'
+    const STRIPE = '#7f8ca3'
     const OUTLINE = '#06131c'
-    const HALO = '#15453f'
+    const HALO = '#2f3a4e'
     let raf = 0
     let frame = 0
     let mask = null
@@ -127,11 +127,12 @@ export default function PixelName({ text = 'Gichia Muiruri', cell = 4 }) {
       }
       ctx.globalAlpha = 1
 
-      // A few bright snow cells inside the letters, sparse and brief.
+      // A few snow cells inside the letters, sparse and brief. Against a white
+      // fill these have to read darker than the letters, not brighter.
       for (let i = 0; i < 6; i++) {
         const idx = Math.floor(hash(i + 1, 3, Math.floor(frame / 4)) * cols * rows)
         if (mask[idx]) {
-          ctx.fillStyle = 'rgba(230,255,250,0.55)'
+          ctx.fillStyle = 'rgba(190,202,220,0.75)'
           ctx.fillRect(px(idx % cols), py(Math.floor(idx / cols)), cell, cell)
         }
       }
