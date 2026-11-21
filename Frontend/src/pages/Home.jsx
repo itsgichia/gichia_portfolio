@@ -1,19 +1,17 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
-import HeroFigure from '../components/HeroFigure'
-import { AnzhfrMock, RhipMock } from '../components/ProjectMocks'
 import { ButtonWall, SydneyClock, Virion, Win } from '../components/Retro'
 import useApi from '../components/useApi'
 
-const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
+import { COLORS } from '../components/ProjectCard'
 
 /* ------------------------------------------------------------------ left */
 
 function Stars() {
   const links = [
     ['#welcome', 'welcome'],
-    ['#work', 'projects'],
+    ['/projects', 'projects', true],
     ['/lab/rsv', 'rsv lab', true],
     ['#skills', 'skills'],
     ['#contact', 'contact'],
@@ -118,8 +116,9 @@ function Welcome({ profile }) {
           <p className="welcome__headline">{profile?.headline}</p>
           <p>{profile?.bio}</p>
           <p className="welcome__note">
-            This site is a small, hand-built corner of the web. Browse the projects below, including the{' '}
-            <Link to="/lab/rsv">RSV transmission lab</Link>, which runs live. The teal mascot is a respiratory
+            This site is a small, hand-built corner of the web. The highlights are below and the{' '}
+            <Link to="/projects">full project list</Link> is one page over; the <Link to="/lab/rsv">RSV lab</Link>{' '}
+            runs live. The teal mascot is a respiratory
             syncytial virus; it's harmless here.
           </p>
         </div>
@@ -128,67 +127,11 @@ function Welcome({ profile }) {
   )
 }
 
-function ProjectVisual({ p, color }) {
-  if (p.image_url) return <img className="room__shot" src={p.image_url} alt={`Screenshot of ${p.title}`} loading="lazy" />
-  if (p.slug === 'rsv-transmission-lab') return <HeroFigure />
-  if (p.slug === 'rhip-connect') return <RhipMock />
-  if (p.slug === 'anzhfr-cohort-builder') return <AnzhfrMock />
-  return (
-    <div className="room__blank" style={{ '--c': color }} aria-hidden="true">
-      <span>{p.title}</span>
-    </div>
-  )
-}
-
-function Room({ p, color, n }) {
-  const live = p.live_url
-  const internal = live && live.startsWith('/')
-  return (
-    <article id={p.slug} className="room" style={{ '--c': color }}>
-      <p className="room__no">
-        {String(n).padStart(2, '0')} · {p.category}
-        {p.status === 'live' && <span className="badge badge--live">live</span>}
-      </p>
-      <h3 className="room__title">{p.title}</h3>
-      <p className="room__tagline">{p.tagline}</p>
-      <div className="room__visual">
-        <ProjectVisual p={p} color={color} />
-      </div>
-      <p>{p.approach}</p>
-      <ul className="tags">
-        {p.tags.map((t) => (
-          <li key={t}>{t}</li>
-        ))}
-      </ul>
-      <div className="actions">
-        {live &&
-          (internal ? (
-            <Link className="btn" to={live}>
-              Open the lab
-            </Link>
-          ) : (
-            <a className="btn" href={live} target="_blank" rel="noreferrer">
-              Open live app
-            </a>
-          ))}
-        <Link className="btn btn--ghost" to={`/projects/${p.slug}`}>
-          Read more
-        </Link>
-        {p.repo_url && (
-          <a className="btn btn--ghost" href={p.repo_url} target="_blank" rel="noreferrer">
-            Code
-          </a>
-        )}
-      </div>
-    </article>
-  )
-}
-
-function Projects({ projects, error, loading }) {
+function Featured({ projects, error, loading }) {
   const featured = projects.filter((p) => p.featured)
-  const rest = projects.filter((p) => !p.featured)
+  const count = projects.length
   return (
-    <Win title="projects" icon="✩" id="work">
+    <Win title="featured projects" icon="✩" id="work">
       {loading && <p className="muted">Loading projects…</p>}
       {error && (
         <p className="notice notice--error" role="alert">
@@ -196,27 +139,26 @@ function Projects({ projects, error, loading }) {
           on port 8000 and refresh.
         </p>
       )}
-      <div className="rooms">
+      <ol className="featured">
         {featured.map((p, i) => (
-          <Room key={p.id} p={p} n={1 + i} color={COLORS[i % COLORS.length]} />
+          <li key={p.id} style={{ '--c': COLORS[i % COLORS.length] }}>
+            <p className="room__no">
+              {String(i + 1).padStart(2, '0')} · {p.category}
+              {p.status === 'live' && <span className="badge badge--live">live</span>}
+            </p>
+            <h3 className="featured__title">
+              <Link to={p.live_url?.startsWith('/') ? p.live_url : `/projects/${p.slug}`}>{p.title}</Link>
+            </h3>
+            <p className="room__tagline">{p.tagline}</p>
+          </li>
         ))}
-      </div>
-      {rest.length > 0 && (
-        <>
-          <h3 className="subhead">☾ research</h3>
-          <ul className="archive">
-            {rest.map((p) => (
-              <li key={p.id}>
-                <Link to={`/projects/${p.slug}`}>
-                  <strong>{p.title}</strong>
-                </Link>{' '}
-                <span className="muted">({p.category})</span>
-                <br />
-                {p.tagline}
-              </li>
-            ))}
-          </ul>
-        </>
+      </ol>
+      {count > 0 && (
+        <div className="actions">
+          <Link className="btn" to="/projects">
+            All {count} projects, by area
+          </Link>
+        </div>
       )}
     </Win>
   )
@@ -290,7 +232,7 @@ export default function Home() {
 
       <div className="lobby__main">
         <Welcome profile={p} />
-        <Projects projects={projects.data || []} error={projects.error} loading={projects.loading} />
+        <Featured projects={projects.data || []} error={projects.error} loading={projects.loading} />
         <Inventory profile={p} />
         <Contact profile={p} />
       </div>

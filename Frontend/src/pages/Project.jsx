@@ -19,7 +19,7 @@ export default function Project() {
         <Win title="404.txt">
           <h1 className="article__title">Project not found</h1>
           <p className="article__lede">
-            It may have been renamed. <Link to="/#work">Go back to all projects</Link>.
+            It may have been renamed. <Link to="/projects">Go back to all projects</Link>.
           </p>
         </Win>
       </div>
@@ -29,7 +29,7 @@ export default function Project() {
   return (
     <div className="page">
     <Win title={`${p.slug}.html`} className="article">
-      <Link className="back" to="/#work">
+      <Link className="back" to="/projects">
         ← all projects
       </Link>
       <h1 className="article__title">{p.title}</h1>

@@ -5,6 +5,7 @@ import Admin from './pages/Admin'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Project from './pages/Project'
+import Projects from './pages/Projects'
 import RsvLab from './pages/RsvLab'
 
 function NotFound() {
@@ -26,6 +27,7 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Home />} />
+          <Route path="projects" element={<Projects />} />
           <Route path="projects/:slug" element={<Project />} />
           <Route path="lab/rsv" element={<RsvLab />} />
           <Route path="admin" element={<Admin />} />

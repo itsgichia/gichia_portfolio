@@ -24,7 +24,7 @@ export function Nav() {
           </NavLink>
         </li>
         <li>
-          <a href="/#work">Projects</a>
+          <NavLink to="/projects">Projects</NavLink>
         </li>
         <li>
           <a href="/#contact">Contact</a>

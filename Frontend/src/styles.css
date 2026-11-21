@@ -325,6 +325,52 @@ a:hover {
   min-width: 0;
 }
 
+/* featured list on the home page */
+.featured {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.9rem;
+}
+.featured li {
+  border-left: 3px solid var(--c);
+  padding-left: 0.85rem;
+}
+.featured__title {
+  font-family: var(--pixel);
+  font-size: 1rem;
+  margin: 0.15rem 0;
+}
+.featured__title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.featured__title a:hover {
+  color: var(--c);
+  text-decoration: underline;
+}
+.featured + .actions {
+  margin-top: 1.1rem;
+}
+.stars--inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.75rem 0 0;
+}
+.catalog__blurb {
+  margin-bottom: 1rem;
+}
+.page .win + .win {
+  margin-top: 1rem;
+}
+@media (min-width: 900px) {
+  .page .rooms {
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  }
+}
+
 /* contact */
 .contact {
   margin: 1rem 0 0;
