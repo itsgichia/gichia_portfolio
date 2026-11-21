@@ -235,6 +235,41 @@ PROJECTS = [
         order_index=5,
     ),
     dict(
+        slug="icd10am-llm-coding",
+        title="Can prompt engineering teach a small model to code diagnoses?",
+        tagline="Nine prompt strategies against a 0.5 billion parameter language model, assigning ICD-10-AM diagnosis codes to hospital summaries",
+        category="Clinical NLP",
+        role="Personal project, from coursework at UNSW",
+        year="2025",
+        status="completed",
+        situation=(
+            "Clinical coding turns a hospital record into the ICD-10-AM codes that drive reporting and funding, and it "
+            "is skilled, expensive work. Small language models are often proposed for it. I wanted to find out what a "
+            "model you can run on a laptop actually does when asked to code a discharge summary."
+        ),
+        approach=(
+            "Built nine prompt strategies for Qwen2.5-0.5B-Instruct, from a bare instruction through strict output "
+            "formats, a clinical coder persona, few-shot examples, chain of thought, a briefing on how the "
+            "classification is structured, and JSON output. Ran them over synthetic clinical notes with weak labels "
+            "derived from each note's own stated diagnosis, with that section removed from the model's input so the "
+            "task could not be solved by copying. Measured accuracy, format validity, chapter agreement, how many "
+            "distinct codes each strategy produced, and how often an answer was simply a code the prompt had shown it."
+        ),
+        outcome=(
+            "Accuracy was exactly zero across all nine strategies on both splits, 140 predictions without a single "
+            "correct code. Format validity meanwhile spanned the full range from zero to one, so prompting controlled "
+            "the shape of the answer completely and its content not at all. Every strategy carrying six examples "
+            "answered only with codes from its own examples, and the briefing on classification structure made the "
+            "model answer every case with an infectious disease code, because that was the chapter the briefing named "
+            "first. A negative result, reported as one."
+        ),
+        tags=["Python", "PyTorch", "Hugging Face", "Prompt engineering", "Qwen2.5", "Clinical coding"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/icd10am-llm-coding",
+        featured=True,
+        order_index=7,
+    ),
+    dict(
         slug="fna-ann-vs-logistic",
         title="Does a neural network earn its complexity?",
         tagline="Neural network against regularised logistic regression on breast cytology, judged on calibration and clinical usefulness, not accuracy alone",
