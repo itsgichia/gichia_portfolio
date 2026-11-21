@@ -20,7 +20,13 @@ const AREAS = [
     title: 'modelling and prediction',
     icon: '⚗',
     blurb: 'Statistical and mechanistic models of how disease spreads and who is at risk.',
-    categories: ['Infectious disease modelling', 'Clinical prediction', 'Statistics', 'Machine learning', 'Modelling'],
+    categories: ['Infectious disease modelling', 'Clinical prediction', 'Statistics', 'Modelling'],
+  },
+  {
+    title: 'machine learning',
+    icon: '◈',
+    blurb: 'Learning from clinical text, images and molecules, and testing whether the models hold up.',
+    categories: ['Machine learning', 'Deep learning', 'Medical imaging', 'Clinical NLP', 'Drug discovery'],
   },
   {
     title: 'bioinformatics',
