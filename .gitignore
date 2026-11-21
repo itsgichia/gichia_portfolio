@@ -8,3 +8,6 @@ __pycache__/
 Backend/static/
 .DS_Store
 _to_delete/
+
+# Stray screenshots dropped into the repo folder
+Screenshot*.png
