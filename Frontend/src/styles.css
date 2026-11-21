@@ -1680,7 +1680,7 @@ input[type='range'] {
 /* ------------------------------------------------- project figures (cards) */
 .pfig__grid {
   display: grid;
-  grid-template-columns: minmax(190px, 240px) 1fr;
+  grid-template-columns: minmax(190px, 250px) 1fr;
   gap: 1rem;
   align-items: start;
 }
@@ -1712,17 +1712,6 @@ input[type='range'] {
 }
 .pfig__bad {
   fill: var(--red);
-}
-.pfig__bar {
-  animation: pfig-grow 0.9s steps(12) both;
-}
-@keyframes pfig-grow {
-  from {
-    transform: scaleX(0);
-  }
-  to {
-    transform: scaleX(1);
-  }
 }
 .pfig__rows {
   list-style: none;
@@ -1760,86 +1749,232 @@ input[type='range'] {
   transform-origin: left center;
   animation: pfig-grow 0.9s steps(12) 0.15s both;
 }
-
-/* histopathology: a scan line sweeping down the patch grid */
-.histo__sweep {
-  animation: histo-sweep 6s linear infinite;
+@keyframes pfig-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
 }
-@keyframes histo-sweep {
+
+/* --- histopathology: a patch running through the convolution stack (8s) --- */
+/* Two patches alternate, so each loop classifies one tumour and one benign.
+   The phase gate is a group opacity; the fill and verdict time themselves
+   inside the group, so no element has two animations on the same property. */
+.cnn__phase--a {
+  animation: cnn-phase-a 8s steps(1) infinite;
+}
+.cnn__phase--b {
+  opacity: 0;
+  animation: cnn-phase-b 8s steps(1) infinite;
+}
+@keyframes cnn-phase-a {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cnn-phase-b {
+  0%,
+  49% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+.cnn__p {
+  transform-origin: 8px center;
+  animation: cnn-fill 4s ease-out infinite;
+}
+@keyframes cnn-fill {
+  0%,
+  44% {
+    transform: scaleX(0);
+  }
+  68%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+.cnn__v {
+  opacity: 0;
+  animation: cnn-verdict 4s steps(1) infinite;
+}
+@keyframes cnn-verdict {
+  0%,
+  57% {
+    opacity: 0;
+  }
+  60%,
+  100% {
+    opacity: 1;
+  }
+}
+.cnn__stage {
+  animation: cnn-fire 4s ease-in-out infinite;
+}
+@keyframes cnn-fire {
+  0%,
+  20% {
+    opacity: 0.3;
+  }
+  34%,
+  76% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}
+.cnn__spark {
+  animation: cnn-travel 4s linear infinite;
+}
+@keyframes cnn-travel {
   0% {
-    transform: translateY(0);
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  8%,
+  86% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(132px, 4px);
+    opacity: 0;
+  }
+}
+
+/* --- ligand: strip to scaffold, then sort into a bin (12s, two regimes) --- */
+.lig__mol {
+  animation: lig-travel 6s ease-in-out infinite;
+}
+@keyframes lig-travel {
+  0% {
+    transform: translate(2px, 40px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  32%,
+  52% {
+    transform: translate(92px, 40px);
+    opacity: 1;
+  }
+  80%,
+  100% {
+    transform: translate(92px, 40px);
+    opacity: 0;
+  }
+}
+.lig__chain {
+  animation: lig-strip 6s ease-in-out infinite;
+}
+@keyframes lig-strip {
+  0%,
+  36% {
+    opacity: 1;
+  }
+  52%,
+  100% {
+    opacity: 0;
+  }
+}
+.lig__label {
+  opacity: 0;
+  animation: lig-stamp 6s steps(1) infinite;
+}
+@keyframes lig-stamp {
+  0%,
+  52% {
+    opacity: 0;
+  }
+  54%,
+  86% {
+    opacity: 1;
+  }
+  88%,
+  100% {
+    opacity: 0;
+  }
+}
+/* The destination and the caption swap every six seconds. */
+.lig__drop--rand,
+.lig__leak,
+.lig__cap--rand {
+  opacity: 0;
+  animation: lig-rand 12s steps(1) infinite;
+}
+.lig__drop--scaf,
+.lig__cap--scaf {
+  opacity: 0;
+  animation: lig-scaf 12s steps(1) infinite;
+}
+@keyframes lig-rand {
+  0%,
+  5% {
     opacity: 0;
   }
   6%,
-  94% {
+  49% {
     opacity: 1;
   }
+  50%,
   100% {
-    transform: translateY(160px);
     opacity: 0;
   }
 }
-.histo__mark {
-  opacity: 0;
-  animation: histo-mark 6s steps(1) infinite;
-}
-@keyframes histo-mark {
+@keyframes lig-scaf {
   0%,
-  14% {
+  55% {
+    opacity: 0;
+  }
+  56%,
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* --- ICD: tokens streaming into the model, answers cycling (8s) --- */
+.icd__tok {
+  opacity: 0;
+  animation: icd-stream 1.8s linear infinite;
+}
+@keyframes icd-stream {
+  0% {
+    transform: translate(0, 0);
     opacity: 0;
   }
   15%,
-  94% {
+  80% {
     opacity: 1;
   }
   100% {
+    transform: translate(2px, 26px);
     opacity: 0;
   }
 }
-
-/* ligand: the scaffold overlap strip switching between the two splits */
-.ligand__shared {
-  animation: ligand-shared 6s steps(1) infinite;
+.icd__scan {
+  animation: icd-scan 1.8s linear infinite;
 }
-@keyframes ligand-shared {
-  0%,
-  47% {
-    opacity: 1;
+@keyframes icd-scan {
+  0% {
+    transform: translateX(0);
   }
-  50%,
   100% {
-    opacity: 0;
+    transform: translateX(102px);
   }
 }
-.ligand__cap--a {
-  animation: ligand-cap-a 6s steps(1) infinite;
-}
-.ligand__cap--b {
-  opacity: 0;
-  animation: ligand-cap-b 6s steps(1) infinite;
-}
-@keyframes ligand-cap-a {
-  0%,
-  47% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-@keyframes ligand-cap-b {
-  0%,
-  47% {
-    opacity: 0;
-  }
-  50%,
-  100% {
-    opacity: 1;
-  }
-}
-
-/* ICD: the answer cycling through four wrong codes */
 .icd__code {
   opacity: 0;
   animation: icd-code 8s steps(1) infinite;
@@ -1855,74 +1990,186 @@ input[type='range'] {
   }
 }
 
-/* FNA: the interval growing out from the point estimate */
-.fna__ci {
-  animation: pfig-grow 0.9s steps(12) 0.3s both;
+/* --- FNA: measure the nucleus, then run both models (4s) --- */
+.fna__sweep {
+  animation: fna-sweep 4s linear infinite;
+  transform-origin: 0 0;
 }
-.fna__point {
-  animation: fna-point 1.6s steps(2) 1.2s infinite;
+@keyframes fna-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
-@keyframes fna-point {
+.fna__feat {
+  transform-origin: 134px center;
+  animation: fna-fill 4s ease-out infinite;
+}
+/* Fill as the sweep passes, then hold, rather than creeping for four seconds. */
+@keyframes fna-fill {
   0%,
-  60% {
-    opacity: 1;
+  8% {
+    transform: scaleX(0);
   }
-  70%,
+  34%,
   100% {
-    opacity: 0.35;
+    transform: scaleX(1);
+  }
+}
+.fna__curve {
+  stroke-dasharray: 120;
+  stroke-dashoffset: 120;
+  animation: fna-draw 4s ease-in-out infinite;
+}
+@keyframes fna-draw {
+  0%,
+  28% {
+    stroke-dashoffset: 120;
+  }
+  58%,
+  92% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+.fna__edge {
+  animation: fna-fire 4s ease-in-out infinite;
+}
+@keyframes fna-fire {
+  0%,
+  28% {
+    stroke: var(--line);
+    stroke-width: 0.8;
+  }
+  45%,
+  88% {
+    stroke: var(--lilac);
+    stroke-width: 1.8;
+  }
+  100% {
+    stroke: var(--line);
+    stroke-width: 0.8;
+  }
+}
+.fna__verdict {
+  opacity: 0;
+  animation: fna-verdict 4s steps(1) infinite;
+}
+@keyframes fna-verdict {
+  0%,
+  62% {
+    opacity: 0;
+  }
+  64%,
+  100% {
+    opacity: 1;
   }
 }
 
-/* linkage: records flowing into the joined infant record */
-.bronch__dot {
-  animation: bronch-flow 3s linear infinite;
+/* --- linkage: events dropping onto the infant's timeline (7s) --- */
+.bronch__tick {
+  opacity: 0;
+  animation: bronch-drop 7s ease-in infinite;
 }
-@keyframes bronch-flow {
+@keyframes bronch-drop {
   0% {
-    transform: translate(0, 0);
+    transform: translateY(-6px);
     opacity: 0;
   }
-  15%,
-  80% {
+  4% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+  14%,
+  86% {
+    transform: translateY(var(--drop));
     opacity: 1;
   }
+  96%,
   100% {
-    transform: translate(26px, var(--dy));
+    transform: translateY(var(--drop));
     opacity: 0;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .pfig__bar,
-  .pfig__meter i,
-  .histo__sweep,
-  .histo__mark,
-  .ligand__shared,
-  .ligand__cap--a,
-  .ligand__cap--b,
-  .icd__code,
-  .fna__ci,
-  .fna__point,
-  .bronch__dot {
-    animation: none;
-  }
-  .histo__mark,
-  .icd__code,
-  .ligand__cap--a {
-    opacity: 1;
-  }
-  .ligand__cap--b,
-  .icd__code:not(:first-of-type),
-  .histo__sweep,
-  .bronch__dot {
-    opacity: 0;
-  }
+.bronch__score {
+  animation: pfig-grow 7s ease-out infinite;
 }
 .bronch__corrected {
-  animation: pfig-grow 0.9s steps(12) 1.9s both;
+  animation: bronch-correct 7s ease-out infinite;
 }
+@keyframes bronch-correct {
+  0%,
+  55% {
+    transform: scaleX(0);
+  }
+  72%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .pfig__meter i,
+  .cnn__phase--a,
+  .cnn__phase--b,
+  .cnn__stage,
+  .cnn__spark,
+  .cnn__p,
+  .cnn__v,
+  .lig__mol,
+  .lig__chain,
+  .lig__label,
+  .lig__drop--rand,
+  .lig__drop--scaf,
+  .lig__leak,
+  .lig__cap--rand,
+  .lig__cap--scaf,
+  .icd__tok,
+  .icd__scan,
+  .icd__code,
+  .fna__sweep,
+  .fna__feat,
+  .fna__curve,
+  .fna__edge,
+  .fna__verdict,
+  .bronch__tick,
+  .bronch__score,
   .bronch__corrected {
     animation: none;
+  }
+  /* A single readable frame: the tumour pass, the random split, one answer. */
+  .cnn__phase--a,
+  .cnn__v,
+  .lig__label,
+  .lig__drop--rand,
+  .lig__leak,
+  .lig__cap--rand,
+  .fna__verdict,
+  .bronch__tick {
+    opacity: 1;
+  }
+  .cnn__phase--b,
+  .lig__chain,
+  .lig__drop--scaf,
+  .lig__cap--scaf,
+  .icd__tok,
+  .icd__scan {
+    opacity: 0;
+  }
+  .icd__code:first-of-type {
+    opacity: 1;
+  }
+  .lig__mol {
+    transform: translate(92px, 40px);
+  }
+  .bronch__tick {
+    transform: translateY(var(--drop));
+  }
+  .fna__curve {
+    stroke-dashoffset: 0;
   }
 }

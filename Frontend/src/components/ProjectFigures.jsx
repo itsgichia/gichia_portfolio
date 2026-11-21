@@ -1,8 +1,14 @@
 /**
- * Animated methodology figures for the projects that have no screenshot.
- * Each one shows the mechanism the project turns on and the numbers it
- * actually measured. Pure SVG and CSS keyframes, no images, no libraries;
- * every animation is switched off under prefers-reduced-motion.
+ * Methodology figures for the projects that have no screenshot.
+ *
+ * Each one animates the mechanism the project turns on, the way the chemistry
+ * figure shows a ligand docking rather than charting the result: a patch
+ * passing through a network, a molecule stripped to its scaffold and sorted
+ * into a bin, a note tokenised into a model, a nucleus measured and sent down
+ * two competing paths, records landing on an infant's timeline. The measured
+ * numbers sit beside the animation, not inside it.
+ *
+ * Pure SVG and CSS keyframes. Every animation stops under prefers-reduced-motion.
  */
 
 /** A labelled row with a meter underneath, used in the notes column. */
@@ -32,69 +38,109 @@ function Figure({ title, sub, svg, children, caption }) {
   )
 }
 
-/* ------------------------------------------------ histopathology metastasis */
-
-// Deterministic so the texture is the same on every render.
+// Deterministic, so textures are identical on every render.
 const hash = (n) => {
   const x = Math.sin(n * 12.9898) * 43758.5453
   return x - Math.floor(x)
 }
-const TUMOUR = new Set([2, 6, 9, 11, 14, 17])
 
-function PatchGrid() {
-  const cells = []
-  for (let i = 0; i < 20; i += 1) {
-    const col = i % 5
-    const row = Math.floor(i / 5)
-    const x = 10 + col * 40
-    const y = 14 + row * 40
-    const tumour = TUMOUR.has(i)
-    const dots = []
-    // Benign patches read as dense lymphocyte speckle, tumour as bulkier blobs.
-    const n = tumour ? 9 : 18
-    for (let d = 0; d < n; d += 1) {
-      const s = tumour ? 3 + Math.floor(hash(i * 17 + d) * 3) : 2
-      dots.push(
-        <rect
-          key={d}
-          x={x + 3 + Math.floor(hash(i * 31 + d) * 30)}
-          y={y + 3 + Math.floor(hash(i * 53 + d + 7) * 30)}
-          width={s}
-          height={s}
-          fill={tumour ? 'rgba(245,184,74,0.7)' : 'rgba(159,179,209,0.55)'}
-        />,
-      )
-    }
-    cells.push(
-      <g key={i}>
-        <rect x={x} y={y} width="36" height="36" fill="rgba(45,212,191,0.06)" stroke="var(--line)" strokeWidth="1" />
-        {dots}
-        <g className="histo__mark" style={{ animationDelay: `${row * 1.5 - 0.9}s` }}>
-          {tumour ? (
-            <>
-              <rect x={x} y={y} width="36" height="36" fill="none" stroke="var(--yellow)" strokeWidth="2" />
-              <text x={x + 30} y={y + 33} className="pfig__tag" fill="var(--yellow)">
-                +
-              </text>
-            </>
-          ) : (
-            <rect x={x + 29} y={y + 29} width="4" height="4" fill="var(--pink)" />
-          )}
-        </g>
-      </g>,
+/* ------------------------------------------------ histopathology metastasis */
+
+/** A 36x36 tissue patch: dense speckle for benign, bulkier blobs for tumour. */
+function Patch({ x, y, size = 36, tumour, seed }) {
+  const dots = []
+  const n = tumour ? 10 : 20
+  for (let d = 0; d < n; d += 1) {
+    const s = tumour ? 3 + Math.floor(hash(seed * 17 + d) * 3) : 2
+    dots.push(
+      <rect
+        key={d}
+        x={x + 2 + Math.floor(hash(seed * 31 + d) * (size - 5))}
+        y={y + 2 + Math.floor(hash(seed * 53 + d + 7) * (size - 5))}
+        width={s}
+        height={s}
+        fill={tumour ? 'rgba(245,184,74,0.8)' : 'rgba(159,179,209,0.6)'}
+      />,
     )
   }
   return (
+    <g>
+      <rect x={x} y={y} width={size} height={size} fill="rgba(45,212,191,0.07)" stroke="var(--line)" strokeWidth="1" />
+      {dots}
+    </g>
+  )
+}
+
+/** One convolution stage: a stack of feature maps that lights up as data arrives. */
+function Stage({ x, y, size, label, delay }) {
+  return (
+    <g className="cnn__stage" style={{ animationDelay: `${delay}s` }}>
+      {[8, 4, 0].map((o, i) => (
+        <rect
+          key={o}
+          x={x + o}
+          y={y - o}
+          width={size}
+          height={size}
+          fill={i === 2 ? 'rgba(45,212,191,0.16)' : 'rgba(45,212,191,0.07)'}
+          stroke="var(--pink)"
+          strokeWidth="1"
+        />
+      ))}
+      <text x={x + size / 2 + 4} y={y + size + 14} className="pfig__tag" textAnchor="middle">
+        {label}
+      </text>
+    </g>
+  )
+}
+
+function CnnPipeline() {
+  return (
     <svg
       className="pfig__svg"
-      viewBox="0 0 220 180"
+      viewBox="0 0 240 180"
       role="img"
-      aria-label="A grid of lymph node tissue patches being scanned, six of twenty marked as containing tumour"
+      aria-label="A lymph node patch passes through three convolution stages and comes out as a probability of metastasis"
     >
-      {cells}
-      <g className="histo__sweep">
-        <rect x="10" y="12" width="200" height="2" fill="var(--pink)" />
-        <rect x="10" y="14" width="200" height="36" fill="rgba(45,212,191,0.07)" />
+      <text x="8" y="14" className="pfig__tag">
+        96×96 PATCH
+      </text>
+      <Stage x={66} y={30} size={28} label="conv 1" delay={0.35} />
+      <Stage x={122} y={36} size={20} label="conv 2" delay={0.7} />
+      <Stage x={170} y={40} size={14} label="conv 3" delay={1.05} />
+
+      {/* the activation travelling through the stack */}
+      <rect className="cnn__spark" x="48" y="42" width="5" height="5" fill="var(--pink)" />
+
+      <path d="M46 44 H62 M58 41 L63 44 L58 47" fill="none" stroke="var(--line-hi)" strokeWidth="1" />
+      <path d="M104 44 H118 M114 41 L119 44 L114 47" fill="none" stroke="var(--line-hi)" strokeWidth="1" />
+      <path d="M152 48 H166 M162 45 L167 48 L162 51" fill="none" stroke="var(--line-hi)" strokeWidth="1" />
+
+      <line x1="8" y1="104" x2="232" y2="104" stroke="var(--line)" strokeDasharray="2 3" />
+      <text x="8" y="120" className="pfig__tag">
+        P(METASTASIS)
+      </text>
+      <rect x="8" y="128" width="224" height="14" fill="rgba(159,179,209,0.08)" />
+      <text x="8" y="162" className="pfig__lab">
+        verdict
+      </text>
+
+      {/* Each pass classifies one patch. Everything belonging to a pass is
+          grouped, so the phase gate is one opacity animation on the group and
+          the timing inside it stays independent. */}
+      <g className="cnn__phase cnn__phase--a">
+        <Patch x={8} y={26} tumour seed={3} />
+        <rect className="cnn__p" x="8" y="128" width={224 * 0.94} height="14" fill="var(--yellow)" />
+        <text x="58" y="162" className="pfig__val cnn__v" fill="var(--yellow)">
+          metastasis 0.94
+        </text>
+      </g>
+      <g className="cnn__phase cnn__phase--b">
+        <Patch x={8} y={26} seed={9} />
+        <rect className="cnn__p" x="8" y="128" width={224 * 0.06} height="14" fill="var(--pink)" />
+        <text x="58" y="162" className="pfig__val cnn__v">
+          benign 0.06
+        </text>
       </g>
     </svg>
   )
@@ -103,9 +149,9 @@ function PatchGrid() {
 export function HistoFigure() {
   return (
     <Figure
-      title="Scoring lymph node patches for metastasis"
+      title="One patch through the network"
       sub="Four models on the same 96 by 96 pixel patches, ranked by area under the curve"
-      svg={<PatchGrid />}
+      svg={<CnnPipeline />}
       caption={
         <>
           The anomaly detector, trained only on healthy tissue, scores <b>below chance</b>. Dense lymphocyte texture is
@@ -123,66 +169,90 @@ export function HistoFigure() {
 
 /* ------------------------------------------------------- ligand activity ML */
 
-const SPLITS = [
-  ['random', 0.67],
-  ['scaffold', 0.46],
-  ['time', 0.23],
-]
+/** A molecule drawn as a ring core plus side chains that can be stripped off. */
+function Molecule({ chains = true }) {
+  return (
+    <g>
+      <polygon points="0,7 5,0 15,0 20,7 15,14 5,14" fill="none" stroke="var(--pink)" strokeWidth="1.6" />
+      <polygon points="20,7 25,0 35,0 40,7 35,14 25,14" fill="none" stroke="var(--pink)" strokeWidth="1.6" />
+      <g className={chains ? 'lig__chain' : undefined} opacity={chains ? 1 : 0}>
+        <line x1="40" y1="7" x2="50" y2="7" stroke="var(--yellow)" strokeWidth="1.6" />
+        <rect x="50" y="4" width="6" height="6" fill="var(--yellow)" />
+        <line x1="10" y1="0" x2="10" y2="-7" stroke="var(--yellow)" strokeWidth="1.6" />
+        <rect x="7" y="-13" width="6" height="6" fill="var(--yellow)" />
+        <line x1="30" y1="14" x2="30" y2="21" stroke="var(--yellow)" strokeWidth="1.6" />
+      </g>
+    </g>
+  )
+}
 
-function SplitChart() {
-  const x0 = 56
-  const full = 134
+function ScaffoldSplit() {
   return (
     <svg
       className="pfig__svg"
-      viewBox="0 0 220 180"
+      viewBox="0 0 240 180"
       role="img"
-      aria-label="R squared falls from 0.67 under a random split to 0.46 under a scaffold split and 0.23 under a time split"
+      aria-label="A molecule is stripped to its Murcko scaffold and sorted into a training or test bin, leaking across the split when the split is random"
     >
-      <text x="10" y="16" className="pfig__tag">
-        R² BY SPLIT
+      <text x="8" y="14" className="pfig__tag">
+        STRIP TO THE MURCKO SCAFFOLD
       </text>
-      {SPLITS.map(([name, r2], i) => {
-        const y = 28 + i * 22
-        return (
-          <g key={name}>
-            <text x="10" y={y + 9} className="pfig__lab">
-              {name}
-            </text>
-            <rect x={x0} y={y} width={full} height="12" fill="rgba(159,179,209,0.08)" />
-            <rect
-              x={x0}
-              y={y}
-              width={full * r2}
-              height="12"
-              fill={i === 0 ? 'var(--pink)' : i === 1 ? 'var(--yellow)' : 'var(--red)'}
-              className="pfig__bar"
-              style={{ animationDelay: `${0.2 + i * 0.25}s`, transformOrigin: `${x0}px center` }}
-            />
-            <text x={x0 + full * r2 + 5} y={y + 9} className="pfig__lab">
-              {r2.toFixed(2)}
-            </text>
-          </g>
-        )
-      })}
-      <line x1="10" y1="104" x2="210" y2="104" stroke="var(--line)" strokeDasharray="2 3" />
-      <text x="10" y="118" className="pfig__tag">
-        TEST COMPOUNDS WITH A
+
+      {/* the molecule: drifts in, sheds its side chains, drops into a bin */}
+      <g className="lig__mol">
+        <Molecule />
+      </g>
+      <text x="120" y="62" className="pfig__lab lig__label" textAnchor="middle">
+        scaffold
       </text>
-      <text x="10" y="128" className="pfig__tag">
-        TRAINING SCAFFOLD
+
+      {/* the two bins */}
+      <rect x="20" y="96" width="82" height="52" fill="rgba(45,212,191,0.07)" stroke="var(--pink)" strokeWidth="1" />
+      <text x="61" y="110" className="pfig__tag" textAnchor="middle" fill="var(--ink-2)">
+        TRAIN
       </text>
-      {Array.from({ length: 20 }, (_, i) => (
-        <g key={i}>
-          <rect x={10 + i * 10} y={136} width="8" height="8" fill="none" stroke="var(--line)" strokeWidth="1" />
-          {i < 13 && <rect className="ligand__shared" x={11 + i * 10} y={137} width="6" height="6" fill="var(--yellow)" />}
-        </g>
-      ))}
-      <text x="10" y="162" className="pfig__lab ligand__cap ligand__cap--a">
-        random split — 62 to 73% share a scaffold
+      <rect x="138" y="96" width="82" height="52" fill="rgba(245,184,74,0.07)" stroke="var(--yellow)" strokeWidth="1" />
+      <text x="179" y="110" className="pfig__tag" textAnchor="middle" fill="var(--ink-2)">
+        TEST
       </text>
-      <text x="10" y="162" className="pfig__lab ligand__cap ligand__cap--b">
-        scaffold split — none do, by construction
+
+      {/* the scaffold already sitting in TRAIN */}
+      <g transform="translate(34,120) scale(0.7)">
+        <polygon points="0,7 5,0 15,0 20,7 15,14 5,14" fill="none" stroke="var(--pink)" strokeWidth="2" />
+        <polygon points="20,7 25,0 35,0 40,7 35,14 25,14" fill="none" stroke="var(--pink)" strokeWidth="2" />
+      </g>
+
+      {/* where the new scaffold lands: TEST under a random split, TRAIN under a scaffold split */}
+      <g className="lig__drop lig__drop--rand" transform="translate(152,120) scale(0.7)">
+        <polygon points="0,7 5,0 15,0 20,7 15,14 5,14" fill="none" stroke="var(--red)" strokeWidth="2" />
+        <polygon points="20,7 25,0 35,0 40,7 35,14 25,14" fill="none" stroke="var(--red)" strokeWidth="2" />
+      </g>
+      <g className="lig__drop lig__drop--scaf" transform="translate(34,138) scale(0.7)">
+        <polygon points="0,7 5,0 15,0 20,7 15,14 5,14" fill="none" stroke="var(--pink)" strokeWidth="2" />
+        <polygon points="20,7 25,0 35,0 40,7 35,14 25,14" fill="none" stroke="var(--pink)" strokeWidth="2" />
+      </g>
+
+      {/* The leak: the same scaffold on both sides of the split. The link
+          arcs over the bins because the gap between them is too narrow to
+          hold the label without touching both boxes. */}
+      <g className="lig__leak">
+        <path
+          d="M60 116 V88 H174 V116"
+          fill="none"
+          stroke="var(--red)"
+          strokeWidth="1"
+          strokeDasharray="3 3"
+        />
+        <text x="117" y="85" className="pfig__lab" textAnchor="middle" fill="var(--red)">
+          same scaffold, both sides
+        </text>
+      </g>
+
+      <text x="8" y="166" className="pfig__lab lig__cap lig__cap--rand" fill="var(--red)">
+        random split — 62 to 73% of test compounds leak
+      </text>
+      <text x="8" y="166" className="pfig__lab lig__cap lig__cap--scaf">
+        scaffold split — a scaffold lives on one side only
       </text>
     </svg>
   )
@@ -191,13 +261,14 @@ function SplitChart() {
 export function LigandFigure() {
   return (
     <Figure
-      title="How much the evaluation flatters the model"
+      title="How a compound gets sorted, and what that costs"
       sub="32,540 compounds, five targets, four model families on three representations"
-      svg={<SplitChart />}
+      svg={<ScaffoldSplit />}
       caption={
         <>
           Moving off a random split costs <b>0.08</b> in area under the curve for a scaffold split and <b>0.15</b> for a
-          time split. Ridge regression turns outright negative on four of five targets once the split respects time.
+          time split, and average R² falls from 0.67 to 0.46 to 0.23. Ridge regression turns outright negative on four
+          of five targets once the split respects time.
         </>
       }
     >
@@ -217,55 +288,69 @@ function CodingFlow() {
   return (
     <svg
       className="pfig__svg"
-      viewBox="0 0 220 180"
+      viewBox="0 0 240 180"
       role="img"
-      aria-label="A discharge summary with its diagnosis line removed is fed to a small language model, which answers with a wrong code in a valid format"
+      aria-label="A discharge summary with its diagnosis line removed is tokenised into a small language model, which answers with a wrong code in a valid format"
     >
-      {/* the note */}
-      <rect x="10" y="12" width="200" height="60" fill="rgba(159,179,209,0.05)" stroke="var(--line)" strokeWidth="1" />
-      <text x="16" y="24" className="pfig__tag">
+      <rect x="8" y="10" width="224" height="52" fill="rgba(159,179,209,0.05)" stroke="var(--line)" strokeWidth="1" />
+      <text x="14" y="22" className="pfig__tag">
         DISCHARGE SUMMARY
       </text>
-      <rect x="16" y="30" width="150" height="3" fill="rgba(159,179,209,0.35)" />
-      <rect x="16" y="37" width="178" height="3" fill="rgba(159,179,209,0.35)" />
-      <rect x="16" y="52" width="120" height="3" fill="rgba(159,179,209,0.35)" />
-      <rect x="16" y="59" width="96" height="3" fill="rgba(159,179,209,0.35)" />
-      {/* the line that is taken away, so the task can't be solved by copying */}
-      <rect x="16" y="43" width="92" height="6" fill="var(--line-hi)" />
-      <text x="112" y="49" className="pfig__lab" fill="var(--dim)">
+      <rect x="14" y="28" width="170" height="3" fill="rgba(159,179,209,0.35)" />
+      <rect x="14" y="35" width="200" height="3" fill="rgba(159,179,209,0.35)" />
+      <rect x="14" y="50" width="140" height="3" fill="rgba(159,179,209,0.35)" />
+      <rect x="14" y="57" width="104" height="3" fill="rgba(159,179,209,0.35)" />
+      {/* the line taken away, so the task can't be solved by copying */}
+      <rect x="14" y="41" width="92" height="6" fill="var(--line-hi)" />
+      <text x="112" y="47" className="pfig__lab" fill="var(--dim)">
         diagnosis removed
       </text>
 
-      <path d="M110 72 V86 M106 82 L110 87 L114 82" fill="none" stroke="var(--line-hi)" strokeWidth="1.5" />
-      <rect x="52" y="88" width="116" height="18" fill="rgba(45,212,191,0.08)" stroke="var(--pink)" strokeWidth="1" />
-      <text x="110" y="100" className="pfig__lab" textAnchor="middle" fill="var(--ink)">
+      {/* tokens streaming from the note into the model */}
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <rect
+          key={i}
+          className="icd__tok"
+          x="112"
+          y="64"
+          width="7"
+          height="4"
+          rx="1"
+          fill="var(--pink)"
+          style={{ animationDelay: `${i * 0.28}s` }}
+        />
+      ))}
+
+      <rect x="58" y="86" width="124" height="20" fill="rgba(45,212,191,0.08)" stroke="var(--pink)" strokeWidth="1" />
+      <rect className="icd__scan" x="58" y="86" width="22" height="20" fill="rgba(45,212,191,0.16)" />
+      <text x="120" y="99" className="pfig__lab" textAnchor="middle" fill="var(--ink)">
         Qwen2.5-0.5B-Instruct
       </text>
-      <path d="M110 106 V120 M106 116 L110 121 L114 116" fill="none" stroke="var(--line-hi)" strokeWidth="1.5" />
+      <path d="M120 106 V120 M116 116 L120 121 L116 116" fill="none" stroke="var(--line-hi)" strokeWidth="1" />
 
-      <text x="10" y="134" className="pfig__lab">
+      <text x="8" y="136" className="pfig__lab">
         answer
       </text>
       {WRONG.map((code, i) => (
         <g key={code} className="icd__code" style={{ animationDelay: `${i * 2}s` }}>
-          <text x="56" y="134" className="pfig__val pfig__bad">
+          <text x="56" y="136" className="pfig__val pfig__bad">
             {code}
           </text>
         </g>
       ))}
-      <text x="104" y="134" className="pfig__val pfig__bad">
+      <text x="106" y="136" className="pfig__val pfig__bad">
         ✗
       </text>
-      <text x="10" y="150" className="pfig__lab">
+      <text x="8" y="152" className="pfig__lab">
         true code
       </text>
-      <text x="56" y="150" className="pfig__val" fill="var(--yellow)">
+      <text x="56" y="152" className="pfig__val" fill="var(--yellow)">
         J18.9
       </text>
-      <text x="10" y="166" className="pfig__lab">
+      <text x="8" y="168" className="pfig__lab">
         format
       </text>
-      <text x="56" y="166" className="pfig__val">
+      <text x="56" y="168" className="pfig__val">
         valid ✓
       </text>
     </svg>
@@ -275,7 +360,7 @@ function CodingFlow() {
 export function IcdFigure() {
   return (
     <Figure
-      title="Nine prompts, zero correct codes"
+      title="A note goes in, a wrong code comes out"
       sub="Format validity by prompt strategy on the held-out split; every strategy scored 0.000 accuracy"
       svg={<CodingFlow />}
       caption={
@@ -295,77 +380,116 @@ export function IcdFigure() {
   )
 }
 
-/* -------------------------------------------------- FNA network vs logistic */
+/* --------------------------------------------------- FNA network vs logistic */
 
-function DeltaChart() {
-  // Number line over ±0.004 in AUC, zero in the middle.
-  const zero = 112
-  const perUnit = 88 / 0.004
-  const at = (v) => zero + v * perUnit
-  const lo = at(-0.00225)
-  const hi = at(0.00092)
-  const est = at(-0.00066)
+function TwoPaths() {
+  // A nucleus is measured, then the same features run down two competing models.
+  const nucleus = '0,-16 11,-12 16,-2 13,9 4,16 -7,14 -15,5 -16,-7 -9,-14'
   return (
     <svg
       className="pfig__svg"
-      viewBox="0 0 220 180"
+      viewBox="0 0 240 180"
       role="img"
-      aria-label="The difference in area under the curve is minus 0.00066 with a confidence interval from minus 0.00225 to plus 0.00092, straddling zero"
+      aria-label="A cell nucleus is measured, the features run through logistic regression and a neural network, and both return the same answer"
     >
-      <text x="10" y="16" className="pfig__tag">
-        NETWORK − LOGISTIC, ΔAUC
+      <text x="8" y="14" className="pfig__tag">
+        FINE NEEDLE ASPIRATE
       </text>
-      <line x1="24" y1="48" x2="200" y2="48" stroke="var(--line)" strokeWidth="1" />
-      <line x1={zero} y1="26" x2={zero} y2="54" stroke="var(--line-hi)" strokeDasharray="2 2" />
-      <text x={zero} y="64" className="pfig__lab" textAnchor="middle">
-        0
-      </text>
-      <text x="24" y="64" className="pfig__lab" textAnchor="middle">
-        −0.004
-      </text>
-      <text x="200" y="64" className="pfig__lab" textAnchor="middle">
-        +0.004
-      </text>
-      <g className="fna__ci" style={{ transformOrigin: `${est}px center` }}>
-        <rect x={lo} y="36" width={hi - lo} height="8" fill="rgba(245,184,74,0.3)" stroke="var(--yellow)" strokeWidth="1" />
-        <line x1={lo} y1="32" x2={lo} y2="48" stroke="var(--yellow)" strokeWidth="1.5" />
-        <line x1={hi} y1="32" x2={hi} y2="48" stroke="var(--yellow)" strokeWidth="1.5" />
+      <g transform="translate(40,54)">
+        <polygon points={nucleus} fill="rgba(159,179,209,0.12)" stroke="var(--lilac)" strokeWidth="1.5" />
+        {/* the radius sweeping round the nucleus as it is measured */}
+        <g className="fna__sweep">
+          <line x1="0" y1="0" x2="0" y2="-16" stroke="var(--yellow)" strokeWidth="1.5" />
+          <circle cx="0" cy="-16" r="2.4" fill="var(--yellow)" />
+        </g>
+        <circle cx="0" cy="0" r="1.6" fill="var(--lilac)" />
       </g>
-      <rect className="fna__point" x={est - 3} y="37" width="6" height="6" fill="var(--ink)" />
-      <text x="10" y="88" className="pfig__lab">
-        DeLong p = 0.413 · 114 test cases
-      </text>
 
-      <line x1="10" y1="100" x2="210" y2="100" stroke="var(--line)" strokeDasharray="2 3" />
-      <text x="10" y="114" className="pfig__tag">
-        SPECIFICITY AT 99% SENSITIVITY
-      </text>
+      {/* the three measurements filling as the sweep passes */}
       {[
-        ['logistic', 0.875, 'var(--pink)'],
-        ['trees', 0.528, 'var(--red)'],
-      ].map(([name, v, fill], i) => {
-        const y = 124 + i * 24
+        ['radius', 0.78, 0],
+        ['texture', 0.52, 0.5],
+        ['concavity', 0.66, 1],
+      ].map(([name, v, d], i) => {
+        const y = 36 + i * 16
         return (
           <g key={name}>
-            <text x="10" y={y + 10} className="pfig__lab">
+            <text x="78" y={y + 7} className="pfig__lab">
               {name}
             </text>
-            <rect x="60" y={y} width="120" height="14" fill="rgba(159,179,209,0.08)" />
+            <rect x="134" y={y} width="56" height="8" fill="rgba(159,179,209,0.08)" />
             <rect
-              className="pfig__bar"
-              x="60"
+              className="fna__feat"
+              x="134"
               y={y}
-              width={120 * v}
-              height="14"
-              fill={fill}
-              style={{ animationDelay: `${0.5 + i * 0.25}s`, transformOrigin: '60px center' }}
+              width={56 * v}
+              height="8"
+              fill="var(--lilac)"
+              style={{ animationDelay: `${0.4 + d * 0.4}s`, transformOrigin: '134px center' }}
             />
-            <text x={60 + 120 * v + 5} y={y + 10} className="pfig__lab">
-              {v.toFixed(3)}
-            </text>
           </g>
         )
       })}
+
+      <line x1="8" y1="96" x2="232" y2="96" stroke="var(--line)" strokeDasharray="2 3" />
+
+      {/* path one: logistic regression, drawn as its own sigmoid */}
+      <text x="56" y="112" className="pfig__tag" textAnchor="middle">
+        LOGISTIC
+      </text>
+      <rect x="14" y="116" width="84" height="40" fill="rgba(45,212,191,0.06)" stroke="var(--pink)" strokeWidth="1" />
+      <path
+        className="fna__curve"
+        d="M20 150 C 44 150, 46 122, 92 122"
+        fill="none"
+        stroke="var(--pink)"
+        strokeWidth="2"
+      />
+
+      {/* path two: the network, drawn as a 3-2-1 graph that fires */}
+      <text x="184" y="112" className="pfig__tag" textAnchor="middle">
+        NETWORK
+      </text>
+      <rect x="142" y="116" width="84" height="40" fill="rgba(124,196,248,0.06)" stroke="var(--lilac)" strokeWidth="1" />
+      {[0, 1, 2].map((i) =>
+        [0, 1].map((j) => (
+          <line
+            key={`${i}-${j}`}
+            className="fna__edge"
+            x1="156"
+            y1={126 + i * 10}
+            x2="184"
+            y2={131 + j * 10}
+            stroke="var(--lilac)"
+            strokeWidth="0.8"
+            style={{ animationDelay: `${1.2 + (i + j) * 0.12}s` }}
+          />
+        )),
+      )}
+      {[0, 1].map((j) => (
+        <line
+          key={j}
+          className="fna__edge"
+          x1="184"
+          y1={131 + j * 10}
+          x2="212"
+          y2="136"
+          stroke="var(--lilac)"
+          strokeWidth="0.8"
+          style={{ animationDelay: `${1.5 + j * 0.12}s` }}
+        />
+      ))}
+      {[0, 1, 2].map((i) => (
+        <circle key={i} cx="156" cy={126 + i * 10} r="2.6" fill="var(--lilac)" />
+      ))}
+      {[0, 1].map((j) => (
+        <circle key={j} cx="184" cy={131 + j * 10} r="2.6" fill="var(--lilac)" />
+      ))}
+      <circle cx="212" cy="136" r="3" fill="var(--lilac)" />
+
+      <text x="8" y="174" className="pfig__lab fna__verdict">
+        both say malignant · ΔAUC −0.0007
+      </text>
     </svg>
   )
 }
@@ -373,9 +497,9 @@ function DeltaChart() {
 export function FnaFigure() {
   return (
     <Figure
-      title="Does the network earn its complexity?"
+      title="Two paths from the same measurements"
       sub="Breast cytology: a tuned feedforward network against regularised logistic regression"
-      svg={<DeltaChart />}
+      svg={<TwoPaths />}
       caption={
         <>
           The difference in discrimination is <b>−0.0007</b>, with an interval straddling zero. 114 test cases cannot
@@ -392,106 +516,99 @@ export function FnaFigure() {
   )
 }
 
-/* ------------------------------------------------ infant wheeze prediction */
+/* -------------------------------------------------- infant wheeze prediction */
 
 const SOURCES = [
-  ['general practice', 0, 34],
-  ['emergency dept', 1, 0],
-  ['birth records', 2, -34],
+  ['births', 'var(--lilac)', [0]],
+  ['GP', 'var(--pink)', [1, 3, 5, 8]],
+  ['ED', 'var(--yellow)', [4, 10]],
 ]
 
-function LinkageFlow() {
+function InfantTimeline() {
+  const x0 = 54
+  const span = 170
+  const at = (m) => x0 + (m / 11) * span
   return (
     <svg
       className="pfig__svg"
-      viewBox="0 0 220 180"
+      viewBox="0 0 240 180"
       role="img"
-      aria-label="General practice, emergency department and birth records are linked into one infant record, scored by a model whose apparent area under the curve of 0.794 corrects to 0.757"
+      aria-label="Birth, general practice and emergency department events drop onto one infant's first year, which is then scored for risk"
     >
-      {SOURCES.map(([name, i, dy]) => {
-        const y = 14 + i * 34
+      <text x="8" y="14" className="pfig__tag">
+        ONE INFANT, FIRST YEAR
+      </text>
+      {SOURCES.map(([name, colour, months], row) => {
+        const y = 28 + row * 22
         return (
           <g key={name}>
-            <rect x="8" y={y} width="60" height="26" fill="rgba(159,179,209,0.06)" stroke="var(--line)" strokeWidth="1" />
-            <text x="38" y={y + 12} className="pfig__lab" textAnchor="middle">
-              {name.split(' ')[0]}
+            <text x="8" y={y + 4} className="pfig__lab">
+              {name}
             </text>
-            <text x="38" y={y + 21} className="pfig__lab" textAnchor="middle">
-              {name.split(' ').slice(1).join(' ')}
-            </text>
-            <path
-              d={`M68 ${y + 13} C 80 ${y + 13}, 82 ${y + 13 + dy}, 92 ${y + 13 + dy}`}
-              fill="none"
-              stroke="var(--line-hi)"
-              strokeWidth="1"
-            />
-            <rect
-              className="bronch__dot"
-              x="66"
-              y={y + 11}
-              width="4"
-              height="4"
-              fill="var(--pink)"
-              style={{ '--dy': `${dy}px`, animationDelay: `${i * 0.5}s` }}
-            />
+            {/* Ghosts stay put so each source row still reads once its own
+                events have dropped onto the timeline. */}
+            {months.map((m) => (
+              <rect key={`g${m}`} x={at(m) - 2} y={y - 4} width="4" height="8" fill={colour} opacity="0.22" />
+            ))}
+            {months.map((m, i) => (
+              <rect
+                key={m}
+                className="bronch__tick"
+                x={at(m) - 2}
+                y={y - 4}
+                width="4"
+                height="8"
+                fill={colour}
+                style={{ '--drop': `${96 - y}px`, animationDelay: `${0.3 + row * 0.5 + i * 0.22}s` }}
+              />
+            ))}
           </g>
         )
       })}
-      <rect x="92" y="40" width="52" height="42" fill="rgba(45,212,191,0.08)" stroke="var(--pink)" strokeWidth="1" />
-      <text x="118" y="55" className="pfig__lab" textAnchor="middle" fill="var(--ink)">
+
+      {/* the assembled timeline */}
+      <line x1={x0} y1="96" x2={x0 + span} y2="96" stroke="var(--line-hi)" strokeWidth="1.5" />
+      {Array.from({ length: 12 }, (_, m) => (
+        <line key={m} x1={at(m)} y1="93" x2={at(m)} y2="99" stroke="var(--line)" strokeWidth="1" />
+      ))}
+      <text x={x0} y="112" className="pfig__lab">
+        birth
+      </text>
+      <text x={x0 + span} y="112" className="pfig__lab" textAnchor="end">
+        12 months
+      </text>
+      <text x="8" y="100" className="pfig__lab">
         linked
       </text>
-      <text x="118" y="65" className="pfig__lab" textAnchor="middle" fill="var(--ink)">
-        infant
-      </text>
-      <text x="118" y="75" className="pfig__lab" textAnchor="middle" fill="var(--ink)">
-        record
-      </text>
-      <path d="M144 61 H164 M160 57 L165 61 L160 65" fill="none" stroke="var(--line-hi)" strokeWidth="1" />
-      <rect x="166" y="47" width="46" height="28" fill="rgba(245,184,74,0.1)" stroke="var(--yellow)" strokeWidth="1" />
-      <text x="189" y="59" className="pfig__lab" textAnchor="middle">
-        40 feats
-      </text>
-      <text x="189" y="69" className="pfig__lab" textAnchor="middle">
-        4 models
-      </text>
 
-      <line x1="10" y1="110" x2="210" y2="110" stroke="var(--line)" strokeDasharray="2 3" />
-      <text x="10" y="124" className="pfig__tag">
-        WHEEZE OR BRONCHIOLITIS IN YEAR ONE
+      <line x1="8" y1="124" x2="232" y2="124" stroke="var(--line)" strokeDasharray="2 3" />
+      <text x="8" y="138" className="pfig__tag">
+        WHEEZE OR BRONCHIOLITIS RISK
       </text>
-      {/* The apparent bar, then the optimism correction taken off it. */}
-      <rect x="10" y="132" width="200" height="14" fill="rgba(159,179,209,0.08)" />
+      <rect x="8" y="144" width="224" height="12" fill="rgba(159,179,209,0.08)" />
       <rect
-        className="pfig__bar"
-        x="10"
-        y="132"
-        width={200 * 0.794}
-        height="14"
+        className="bronch__score"
+        x="8"
+        y="144"
+        width={224 * 0.794}
+        height="12"
         fill="rgba(45,212,191,0.3)"
-        style={{ animationDelay: '1.2s', transformOrigin: '10px center' }}
+        style={{ transformOrigin: '8px center' }}
       />
       <rect
         className="bronch__corrected"
-        x="10"
-        y="132"
-        width={200 * 0.757}
-        height="14"
+        x="8"
+        y="144"
+        width={224 * 0.757}
+        height="12"
         fill="var(--pink)"
-        style={{ transformOrigin: '10px center' }}
+        style={{ transformOrigin: '8px center' }}
       />
-      <line x1={10 + 200 * 0.794} y1="128" x2={10 + 200 * 0.794} y2="150" stroke="var(--dim)" strokeWidth="1" />
-      <text x="10" y="162" className="pfig__lab">
-        apparent AUC
+      <text x="8" y="172" className="pfig__lab">
+        AUC 0.794 apparent
       </text>
-      <text x="76" y="162" className="pfig__lab" fill="var(--dim)">
-        0.794
-      </text>
-      <text x="10" y="174" className="pfig__lab">
-        optimism-corrected
-      </text>
-      <text x="108" y="174" className="pfig__val" fill="var(--yellow)">
-        0.757
+      <text x="124" y="172" className="pfig__val" fill="var(--yellow)">
+        0.757 corrected
       </text>
     </svg>
   )
@@ -500,9 +617,9 @@ function LinkageFlow() {
 export function BronchFigure() {
   return (
     <Figure
-      title="Linking three record systems into one infant history"
-      sub="Thousands of children traced through their first year of life"
-      svg={<LinkageFlow />}
+      title="Assembling one infant's first year from three record systems"
+      sub="Thousands of children traced through birth, general practice and emergency records"
+      svg={<InfantTimeline />}
       caption={
         <>
           A thousand cluster bootstrap resamples put the optimism at <b>0.037</b>, so the honest figure is 0.757 rather
