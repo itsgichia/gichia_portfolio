@@ -70,6 +70,18 @@ const BUTTONS = [
   { a: 'NO', b: 'trackers', bg: '#0b1220', fg: '#6ee7a8' },
   { a: 'ANY', b: 'browser', bg: '#9fb3d1', fg: '#0b1220' },
   { a: 'HAND', b: 'made', bg: '#334155', fg: '#ffffff' },
+  { a: 'PYTORCH', b: 'tensors', bg: '#7a2f1c', fg: '#ffffff' },
+  { a: 'RDKit', b: 'molecules', bg: '#1f4e3d', fg: '#6ee7a8' },
+  { a: 'DOCKER', b: 'shipped', bg: '#14467a', fg: '#7cc4f8' },
+  { a: 'PYTEST', b: 'all green', bg: '#1b2640', fg: '#6ee7a8' },
+  { a: 'CSS', b: 'by hand', bg: '#4a2a6a', fg: '#ffffff' },
+  { a: 'CANVAS', b: 'pixels', bg: '#0f766e', fg: '#ffffff' },
+  { a: 'SQLITE', b: 'embedded', bg: '#1e3a5f', fg: '#9fb3d1' },
+  { a: 'VITE', b: 'bundled', bg: '#3b2a7a', fg: '#f5b84a' },
+  { a: 'REDUCED', b: 'motion ok', bg: '#2a3a57', fg: '#6ee7a8' },
+  { a: 'NO', b: 'cookies', bg: '#6b1f2e', fg: '#ffffff' },
+  { a: '800x600', b: 'friendly', bg: '#9fb3d1', fg: '#0b1220' },
+  { a: 'MADE IN', b: 'Sydney', bg: '#1f7f74', fg: '#ffffff' },
 ]
 
 export function ButtonWall() {
