@@ -19,6 +19,7 @@ class Profile(Base):
     bio: Mapped[str] = mapped_column(Text, default="")
     location: Mapped[str] = mapped_column(String(120), default="")
     email: Mapped[str] = mapped_column(String(200), default="")
+    phone: Mapped[str] = mapped_column(String(60), default="")
     github: Mapped[str | None] = mapped_column(String(300), nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String(300), nullable=True)
     availability: Mapped[str] = mapped_column(String(200), default="")
@@ -75,23 +76,6 @@ class Education(Base):
     detail: Mapped[str] = mapped_column(Text, default="")
     kind: Mapped[str] = mapped_column(String(30), default="degree")  # degree | certificate
     order_index: Mapped[int] = mapped_column(Integer, default=0)
-
-
-class GuestbookEntry(Base):
-    __tablename__ = "guestbook"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(60))
-    message: Mapped[str] = mapped_column(Text)
-    site: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
-
-
-class Counter(Base):
-    __tablename__ = "counters"
-
-    key: Mapped[str] = mapped_column(String(40), primary_key=True)
-    value: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class Message(Base):

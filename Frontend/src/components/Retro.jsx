@@ -1,7 +1,7 @@
 // Small decorative building blocks for the retro "lab" look.
 import { useEffect, useRef, useState } from 'react'
-import { api } from '../api'
-import { useSettings } from './settings'
+
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /** A Win98-style panel. The "_" button really does roll the window up. */
 export function Win({ title, icon = '✩', id, className = '', children, actions }) {
@@ -58,17 +58,6 @@ export function Virion({ size = 64, className = '' }) {
   )
 }
 
-export function Marquee({ children }) {
-  return (
-    <div className="marquee" role="marquee" aria-label="News ticker">
-      <div className="marquee__track">
-        <span>{children}</span>
-        <span aria-hidden="true">{children}</span>
-      </div>
-    </div>
-  )
-}
-
 /** Classic 88x31 web buttons, drawn in CSS rather than borrowed GIFs. */
 const BUTTONS = [
   { a: 'PYTHON', b: 'powered', bg: '#1e3a5f', fg: '#f5b84a' },
@@ -96,31 +85,12 @@ export function ButtonWall() {
   )
 }
 
-export function HitCounter() {
-  const [count, setCount] = useState(null)
-  useEffect(() => {
-    api.visit().then((r) => setCount(r.count)).catch(() => setCount(null))
-  }, [])
-  if (count == null) return null
-  return (
-    <p className="hits">
-      you are visitor{' '}
-      <span className="hits__digits" aria-label={String(count)}>
-        {String(count).padStart(6, '0').split('').map((d, i) => (
-          <b key={i} aria-hidden="true">{d}</b>
-        ))}
-      </span>
-    </p>
-  )
-}
-
-/** Canvas rain across the whole window, drawn behind content. */
+/** Canvas rain across the whole window, drawn behind content. Off for reduced-motion users. */
 export function Rain() {
-  const [{ rain }] = useSettings()
   const ref = useRef()
   useEffect(() => {
-    if (!rain) return
     const canvas = ref.current
+    if (!canvas || reducedMotion()) return
     const ctx = canvas.getContext('2d')
     let drops = []
     const resize = () => {
@@ -156,17 +126,16 @@ export function Rain() {
       cancelAnimationFrame(frame)
       window.removeEventListener('resize', resize)
     }
-  }, [rain])
-  return rain ? <canvas ref={ref} className="rain" aria-hidden="true" /> : null
+  }, [])
+  return <canvas ref={ref} className="rain" aria-hidden="true" />
 }
 
-/** A short-lived sparkle trail behind the pointer. */
+/** A short-lived sparkle trail behind the pointer (mouse users only). */
 export function Sparkles() {
-  const [{ sparkles }] = useSettings()
   useEffect(() => {
-    if (!sparkles || !window.matchMedia('(pointer: fine)').matches) return
+    if (reducedMotion() || !window.matchMedia('(pointer: fine)').matches) return
     const glyphs = ['✦', '✧', '⋆', '·']
-    const colors = ['#ffd36e', '#ff77a8', '#7fdbff', '#ffffff']
+    const colors = ['#f5b84a', '#2dd4bf', '#7cc4f8', '#ffffff']
     let last = 0
     const onMove = (e) => {
       const now = performance.now()
@@ -183,30 +152,8 @@ export function Sparkles() {
     }
     window.addEventListener('pointermove', onMove)
     return () => window.removeEventListener('pointermove', onMove)
-  }, [sparkles])
+  }, [])
   return null
-}
-
-export function Toggles() {
-  const [settings, toggle] = useSettings()
-  const rows = [
-    ['rain', 'Rain'],
-    ['sparkles', 'Cursor sparkles'],
-    ['hideMyCursor', 'Hide my cursor from others'],
-    ['hideOthers', "Hide others' cursors"],
-  ]
-  return (
-    <ul className="toggles">
-      {rows.map(([k, label]) => (
-        <li key={k}>
-          <label>
-            <input type="checkbox" checked={settings[k]} onChange={() => toggle(k)} />
-            <span>{label}</span>
-          </label>
-        </li>
-      ))}
-    </ul>
-  )
 }
 
 /** Sydney local time, ticking. */

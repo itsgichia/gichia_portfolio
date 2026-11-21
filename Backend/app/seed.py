@@ -20,6 +20,7 @@ PROFILE = dict(
     ),
     location="Sydney, NSW",
     email="gichiamuiruri@gmail.com",
+    phone="",  # set in the admin area (Profile tab)
     github="https://github.com/itsgichia",
     linkedin="https://www.linkedin.com/in/gichia-muiruri",
     availability="Open to full-time roles in Australia",

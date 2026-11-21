@@ -27,6 +27,7 @@ class ProfileIn(BaseModel):
     bio: str = ""
     location: str = ""
     email: str = ""
+    phone: str = ""
     github: str | None = None
     linkedin: str | None = None
     availability: str = ""
@@ -111,29 +112,6 @@ class MessageOut(BaseModel):
     organisation: str
     body: str
     read: bool
-    created_at: datetime
-
-
-class GuestbookIn(BaseModel):
-    name: str = Field(min_length=1, max_length=60)
-    message: str = Field(min_length=2, max_length=1000)
-    site: str | None = Field(default=None, max_length=200, pattern=r"^(https?://\S+)?$")
-    website: str = ""  # honeypot, as on the contact form
-
-    @field_validator("name", "message")
-    @classmethod
-    def not_blank(cls, v: str) -> str:
-        if not v.strip():
-            raise ValueError("must not be blank")
-        return v.strip()
-
-
-class GuestbookOut(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-    id: int
-    name: str
-    message: str
-    site: str | None
     created_at: datetime
 
 
