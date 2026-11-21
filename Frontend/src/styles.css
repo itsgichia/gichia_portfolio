@@ -1535,19 +1535,20 @@ input[type='range'] {
 }
 
 /* --------------------------------------------- site title */
+/* Silkscreen, the same face the section headings use, just larger. */
 .banner__name {
   display: block;
-  font-family: var(--body);
-  font-weight: 600;
-  font-size: clamp(2rem, 7vw, 3.4rem);
-  line-height: 1.05;
-  letter-spacing: 0.01em;
+  font-family: var(--pixel);
+  font-weight: 700;
+  font-size: clamp(1.45rem, 4.4vw, 2.6rem);
+  line-height: 1.1;
+  letter-spacing: 0.02em;
   color: #ffffff;
   text-shadow: 0 0 14px rgba(226, 236, 245, 0.18);
 }
 @media (max-width: 600px) {
   .banner__name {
-    font-size: clamp(1.75rem, 9vw, 2.4rem);
+    font-size: clamp(1.1rem, 6.2vw, 1.7rem);
   }
 }
 
