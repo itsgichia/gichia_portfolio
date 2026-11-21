@@ -1,6 +1,7 @@
 import { Link, useParams } from 'react-router-dom'
 import { api } from '../api'
 import useApi from '../components/useApi'
+import { ProjectVisual } from '../components/ProjectCard'
 import { Win } from '../components/Retro'
 
 export default function Project() {
@@ -34,6 +35,10 @@ export default function Project() {
       </Link>
       <h1 className="article__title">{p.title}</h1>
       <p className="article__lede">{p.tagline}</p>
+
+      <div className="room__visual">
+        <ProjectVisual p={p} color="var(--pink)" />
+      </div>
 
       <div className="article__grid">
         <div className="prose">

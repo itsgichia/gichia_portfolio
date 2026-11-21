@@ -1676,3 +1676,245 @@ input[type='range'] {
   color: var(--pink);
   flex: 0 0 1.4rem;
 }
+
+/* ------------------------------------------------- project figures (cards) */
+.pfig__grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 620px) {
+  .pfig__grid {
+    grid-template-columns: 1fr;
+  }
+}
+.pfig__svg {
+  width: 100%;
+  border: 2px solid var(--line);
+  background: #07061a;
+  shape-rendering: crispEdges;
+}
+.pfig__tag {
+  font-family: var(--pixel);
+  font-size: 8px;
+  fill: var(--dim);
+}
+.pfig__lab {
+  font-family: var(--term);
+  font-size: 8px;
+  fill: var(--ink-2);
+}
+.pfig__val {
+  font-family: var(--pixel);
+  font-size: 10px;
+  fill: var(--green);
+}
+.pfig__bad {
+  fill: var(--red);
+}
+.pfig__bar {
+  animation: pfig-grow 0.9s steps(12) both;
+}
+@keyframes pfig-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.pfig__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  font-size: var(--s-14);
+}
+.pfig__rows li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 0.6rem;
+  align-items: baseline;
+  color: var(--ink-2);
+}
+.pfig__num {
+  font-family: var(--pixel);
+  font-size: 0.7rem;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+.pfig__num--bad {
+  color: var(--red);
+}
+.pfig__meter {
+  grid-column: 1 / -1;
+  height: 6px;
+  border: 1px solid var(--line);
+  background: #0a0820;
+}
+.pfig__meter i {
+  display: block;
+  height: 100%;
+  transform-origin: left center;
+  animation: pfig-grow 0.9s steps(12) 0.15s both;
+}
+
+/* histopathology: a scan line sweeping down the patch grid */
+.histo__sweep {
+  animation: histo-sweep 6s linear infinite;
+}
+@keyframes histo-sweep {
+  0% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+  6%,
+  94% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(160px);
+    opacity: 0;
+  }
+}
+.histo__mark {
+  opacity: 0;
+  animation: histo-mark 6s steps(1) infinite;
+}
+@keyframes histo-mark {
+  0%,
+  14% {
+    opacity: 0;
+  }
+  15%,
+  94% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ligand: the scaffold overlap strip switching between the two splits */
+.ligand__shared {
+  animation: ligand-shared 6s steps(1) infinite;
+}
+@keyframes ligand-shared {
+  0%,
+  47% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+.ligand__cap--a {
+  animation: ligand-cap-a 6s steps(1) infinite;
+}
+.ligand__cap--b {
+  opacity: 0;
+  animation: ligand-cap-b 6s steps(1) infinite;
+}
+@keyframes ligand-cap-a {
+  0%,
+  47% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes ligand-cap-b {
+  0%,
+  47% {
+    opacity: 0;
+  }
+  50%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* ICD: the answer cycling through four wrong codes */
+.icd__code {
+  opacity: 0;
+  animation: icd-code 8s steps(1) infinite;
+}
+@keyframes icd-code {
+  0%,
+  24% {
+    opacity: 1;
+  }
+  25%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* FNA: the interval growing out from the point estimate */
+.fna__ci {
+  animation: pfig-grow 0.9s steps(12) 0.3s both;
+}
+.fna__point {
+  animation: fna-point 1.6s steps(2) 1.2s infinite;
+}
+@keyframes fna-point {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  70%,
+  100% {
+    opacity: 0.35;
+  }
+}
+
+/* linkage: records flowing into the joined infant record */
+.bronch__dot {
+  animation: bronch-flow 3s linear infinite;
+}
+@keyframes bronch-flow {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  15%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(26px, var(--dy));
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pfig__bar,
+  .pfig__meter i,
+  .histo__sweep,
+  .histo__mark,
+  .ligand__shared,
+  .ligand__cap--a,
+  .ligand__cap--b,
+  .icd__code,
+  .fna__ci,
+  .fna__point,
+  .bronch__dot {
+    animation: none;
+  }
+  .histo__mark,
+  .icd__code,
+  .ligand__cap--a {
+    opacity: 1;
+  }
+  .ligand__cap--b,
+  .icd__code:not(:first-of-type),
+  .histo__sweep,
+  .bronch__dot {
+    opacity: 0;
+  }
+}
