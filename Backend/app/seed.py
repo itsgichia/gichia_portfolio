@@ -235,6 +235,42 @@ PROJECTS = [
         order_index=5,
     ),
     dict(
+        slug="ligand-activity-ml",
+        title="Predicting which molecules will work, and how much to believe it",
+        tagline="Activity models across five drug targets, built mainly to measure how badly the usual evaluation flatters them",
+        category="Drug discovery",
+        role="Personal project",
+        year="2026",
+        status="completed",
+        situation=(
+            "Screening a compound library costs money and time, so machine learning is used to rank candidates before "
+            "anyone runs an assay. Those models are usually reported on a random train and test split, which lets "
+            "close analogues of the training compounds sit in the test set. I wanted to measure how much that single "
+            "choice inflates the headline number."
+        ),
+        approach=(
+            "Pulled 32,540 compounds across five targets from ChEMBL, including the cardiac safety channel hERG and "
+            "the antidiabetic enzyme DPP-4, keeping only exact potency measurements and deduplicating by median. "
+            "Trained four model families on three molecular representations, then evaluated every combination three "
+            "ways: a random split, a Bemis-Murcko scaffold split, and a split by year of first publication. Added an "
+            "applicability domain based on similarity to the training set, label permutation as a null model, and "
+            "screening metrics that reflect how a ranked list is actually used."
+        ),
+        outcome=(
+            "Random splits overstate performance substantially. Averaged across every target and model, a scaffold "
+            "split costs 0.08 in area under the curve and a time split 0.15, and for the regression task the fall is "
+            "steeper, with average R squared dropping from 0.67 to 0.46 to 0.23. Ridge regression turns outright "
+            "negative under a time split on four of five targets. The cause is visible directly: under a random split "
+            "between 62 and 73 percent of test compounds share a scaffold with something in training, against none "
+            "under a scaffold split. Choosing the representation matters half as much as choosing the split."
+        ),
+        tags=["Python", "RDKit", "scikit-learn", "ChEMBL", "Scaffold splits", "Virtual screening"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/ligand-activity-ml",
+        featured=True,
+        order_index=6,
+    ),
+    dict(
         slug="icd10am-llm-coding",
         title="Can prompt engineering teach a small model to code diagnoses?",
         tagline="Nine prompt strategies against a 0.5 billion parameter language model, assigning ICD-10-AM diagnosis codes to hospital summaries",
