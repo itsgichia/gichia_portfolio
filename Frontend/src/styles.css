@@ -1918,3 +1918,11 @@ input[type='range'] {
     opacity: 0;
   }
 }
+.bronch__corrected {
+  animation: pfig-grow 0.9s steps(12) 1.9s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bronch__corrected {
+    animation: none;
+  }
+}

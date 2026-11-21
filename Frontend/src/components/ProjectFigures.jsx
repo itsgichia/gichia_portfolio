@@ -406,7 +406,7 @@ function LinkageFlow() {
       className="pfig__svg"
       viewBox="0 0 220 180"
       role="img"
-      aria-label="General practice, emergency department and birth records are linked into one infant record, then scored by a model reaching an area under the curve of 0.82"
+      aria-label="General practice, emergency department and birth records are linked into one infant record, scored by a model whose apparent area under the curve of 0.794 corrects to 0.757"
     >
       {SOURCES.map(([name, i, dy]) => {
         const y = 14 + i * 34
@@ -457,24 +457,41 @@ function LinkageFlow() {
       </text>
 
       <line x1="10" y1="110" x2="210" y2="110" stroke="var(--line)" strokeDasharray="2 3" />
-      <text x="10" y="126" className="pfig__tag">
+      <text x="10" y="124" className="pfig__tag">
         WHEEZE OR BRONCHIOLITIS IN YEAR ONE
       </text>
-      <rect x="10" y="134" width="200" height="14" fill="rgba(159,179,209,0.08)" />
+      {/* The apparent bar, then the optimism correction taken off it. */}
+      <rect x="10" y="132" width="200" height="14" fill="rgba(159,179,209,0.08)" />
       <rect
         className="pfig__bar"
         x="10"
-        y="134"
-        width={200 * 0.82}
+        y="132"
+        width={200 * 0.794}
+        height="14"
+        fill="rgba(45,212,191,0.3)"
+        style={{ animationDelay: '1.2s', transformOrigin: '10px center' }}
+      />
+      <rect
+        className="bronch__corrected"
+        x="10"
+        y="132"
+        width={200 * 0.757}
         height="14"
         fill="var(--pink)"
-        style={{ animationDelay: '1.4s', transformOrigin: '10px center' }}
+        style={{ transformOrigin: '10px center' }}
       />
-      <text x="10" y="166" className="pfig__lab">
-        area under the curve
+      <line x1={10 + 200 * 0.794} y1="128" x2={10 + 200 * 0.794} y2="150" stroke="var(--dim)" strokeWidth="1" />
+      <text x="10" y="162" className="pfig__lab">
+        apparent AUC
       </text>
-      <text x="118" y="166" className="pfig__val" fill="var(--yellow)">
-        0.82
+      <text x="76" y="162" className="pfig__lab" fill="var(--dim)">
+        0.794
+      </text>
+      <text x="10" y="174" className="pfig__lab">
+        optimism-corrected
+      </text>
+      <text x="108" y="174" className="pfig__val" fill="var(--yellow)">
+        0.757
       </text>
     </svg>
   )
@@ -488,16 +505,16 @@ export function BronchFigure() {
       svg={<LinkageFlow />}
       caption={
         <>
-          More than <b>200 data quality issues</b> were traced back to their source datasets before any model was fitted.
-          The linked repository re-implements the whole pipeline on a synthetic cohort, since the study data are
-          confidential.
+          A thousand cluster bootstrap resamples put the optimism at <b>0.037</b>, so the honest figure is 0.757 rather
+          than the apparent 0.794. Held-out validation agrees. The linked repository re-implements the whole pipeline on
+          a synthetic cohort, since the study data are confidential.
         </>
       }
     >
-      <Row label="Linkage validation and plausibility checks across three systems" value="3 sources" pct={0.6} />
-      <Row label="Data quality issues traced to source" value="200+" pct={0.8} />
-      <Row label="Clinical features engineered" value="40" pct={0.5} />
-      <Row label="Model families benchmarked with bootstrap validation" value="4" pct={0.4} />
+      <Row label="Data quality issues traced back to their source dataset" value="200+" pct={0.8} />
+      <Row label="Clinical features engineered from the linked record" value="40" pct={0.5} />
+      <Row label="Model families compared, penalised regression selected" value="4" pct={0.4} />
+      <Row label="Held-out cluster-aware validation, 95% interval" value="0.745 (0.69–0.80)" pct={0.745} />
     </Figure>
   )
 }
