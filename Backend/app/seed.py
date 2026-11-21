@@ -167,6 +167,36 @@ PROJECTS = [
         order_index=3,
     ),
     dict(
+        slug="sequence-lab",
+        title="Sequence Lab",
+        tagline="Paste DNA or protein and get statistics, open reading frames, a pairwise alignment or a neighbour-joining tree",
+        category="Bioinformatics",
+        role="Personal project",
+        year="2026",
+        status="live",
+        situation=(
+            "Bioinformatics toolkits hide the algorithms behind a command line. I wanted the core ones, the kind "
+            "taught in a first bioinformatics course, running in the browser where you can see what they do."
+        ),
+        approach=(
+            "Wrote the routines from scratch in Python and NumPy: GC content and composition, six-frame ORF finding "
+            "and translation with the standard codon table, Needleman-Wunsch global and Smith-Waterman local "
+            "alignment with a traceback, Jukes-Cantor distances and Saitou-Nei neighbour joining with a Newick "
+            "export. A synthetic gene family with a known tree is bundled so the methods can be checked."
+        ),
+        outcome=(
+            "Runs live on this site's backend with size limits so a request returns in under a second. Scoring "
+            "uses simple match/mismatch/gap values rather than substitution matrices, so it is a teaching tool, "
+            "not a replacement for BLAST or IQ-TREE."
+        ),
+        tags=["Python", "NumPy", "Dynamic programming", "Phylogenetics", "FastAPI", "React"],
+        metrics=[],
+        live_url="/lab/seq",
+        repo_url=None,
+        featured=True,
+        order_index=4,
+    ),
+    dict(
         slug="infant-bronchiolitis-prediction",
         title="Predicting wheeze and bronchiolitis in infants",
         tagline="Machine learning on linked health records from the Breathing for Life cohort",
@@ -188,7 +218,7 @@ PROJECTS = [
         tags=["R", "SQL", "XGBoost", "SHAP", "Power BI"],
         metrics=[],
         featured=False,
-        order_index=4,
+        order_index=5,
     ),
     dict(
         slug="antidiabetic-drug-discovery",
@@ -207,7 +237,7 @@ PROJECTS = [
         tags=["AutoDock Vina", "RDKit", "PyMOL", "QSAR"],
         metrics=[],
         featured=False,
-        order_index=5,
+        order_index=6,
     ),
 ]
 

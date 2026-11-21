@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import HeroFigure from './HeroFigure'
+import { SeqFigure } from './SeqFigure'
 import { AnzhfrMock, RhipMock } from './ProjectMocks'
 
 export const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
@@ -7,6 +8,7 @@ export const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#
 function ProjectVisual({ p, color }) {
   if (p.image_url) return <img className="room__shot" src={p.image_url} alt={`Screenshot of ${p.title}`} loading="lazy" />
   if (p.slug === 'rsv-transmission-lab') return <HeroFigure />
+  if (p.slug === 'sequence-lab') return <SeqFigure />
   if (p.slug === 'rhip-connect') return <RhipMock />
   if (p.slug === 'anzhfr-cohort-builder') return <AnzhfrMock />
   return (

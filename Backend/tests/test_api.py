@@ -29,7 +29,7 @@ def test_admin_requires_login():
         assert c.post("/api/auth/login", json={"password": "wrong"}).status_code == 401
         token = c.post("/api/auth/login", json={"password": "test-password"}).json()["token"]
         h = {"Authorization": f"Bearer {token}"}
-        assert len(c.get("/api/admin/projects", headers=h).json()) == 5
+        assert len(c.get("/api/admin/projects", headers=h).json()) == 6
         assert c.get("/api/admin/projects", headers={"Authorization": "Bearer forged.token"}).status_code == 401
 
 
@@ -107,3 +107,30 @@ def test_rsv_handles_concurrent_requests():
 
         with ThreadPoolExecutor(4) as pool:
             assert set(pool.map(run, [0.2, 0.4, 0.6, 0.8])) == {200}
+
+
+def test_sequence_lab():
+    from app import bio
+
+    with client() as c:
+        ex = c.get("/api/bio/examples").json()
+        st = c.post("/api/bio/stats", json={"sequence": ex["sequence"]}).json()
+        assert st["kind"] == "dna" and st["length"] == 300 and st["orfs"][0]["protein"].startswith("M")
+        assert c.post("/api/bio/stats", json={"sequence": "ACGT123!!"}).status_code == 422
+
+        al = c.post("/api/bio/align", json={"a": "GATTACA", "b": "GCATGCU", "mode": "global", "match": 1, "mismatch": -1, "gap": -1}).json()
+        assert al["score"] == 0 and len(al["a"]) == len(al["b"])  # the textbook Needleman-Wunsch example
+        loc = bio.align("ACGTACGTTT", "TTACGTAC", "local")
+        assert loc["a"] == "ACGTAC" and loc["b"] == "ACGTAC" and loc["score"] == 12
+        assert c.post("/api/bio/align", json={"a": "ACGT", "b": "MKV"}).status_code == 422
+
+        tr = c.post("/api/bio/tree", json={"fasta": ex["fasta"]}).json()
+        assert tr["n"] == 7 and tr["newick"].endswith(";") and len(tr["nodes"]) == 13
+        names = tr["names"]
+        # the two synthetic clades are closer within than between
+        import itertools
+        idx = {nm: i for i, nm in enumerate(names)}
+        within = [tr["matrix"][idx[x]][idx[y]] for g in ("A", "B") for x, y in itertools.combinations([n for n in names if n.startswith(g)], 2)]
+        between = [tr["matrix"][idx[x]][idx[y]] for x in names if x.startswith("A") for y in names if y.startswith("B")]
+        assert max(within) < min(between)
+        assert c.post("/api/bio/tree", json={"fasta": ">x\nACGT\n>y\nACGA"}).status_code == 422

@@ -13,6 +13,7 @@ function Stars() {
     ['#welcome', 'welcome'],
     ['/projects', 'projects', true],
     ['/lab/rsv', 'rsv lab', true],
+    ['/lab/seq', 'sequence lab', true],
     ['#skills', 'skills'],
     ['#contact', 'contact'],
   ]

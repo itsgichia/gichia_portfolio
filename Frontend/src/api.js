@@ -45,6 +45,10 @@ export const api = {
   rsvDefaults: () => request('/rsv/defaults'),
   rsvCompare: (body) => request('/rsv/compare', { method: 'POST', body }),
   health: () => request('/health'),
+  bioExamples: () => request('/bio/examples'),
+  bioStats: (body) => request('/bio/stats', { method: 'POST', body }),
+  bioAlign: (body) => request('/bio/align', { method: 'POST', body }),
+  bioTree: (body) => request('/bio/tree', { method: 'POST', body }),
 
   login: async (password) => {
     const { token } = await request('/auth/login', { method: 'POST', body: { password } })

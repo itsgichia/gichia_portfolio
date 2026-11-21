@@ -23,6 +23,12 @@ const AREAS = [
     categories: ['Infectious disease modelling', 'Clinical prediction', 'Statistics', 'Machine learning', 'Modelling'],
   },
   {
+    title: 'bioinformatics',
+    icon: '⌘',
+    blurb: 'Sequence and omics data: pipelines, analysis and what they say about disease.',
+    categories: ['Bioinformatics', 'Genomics', 'Transcriptomics', 'Omics'],
+  },
+  {
     title: 'laboratory research',
     icon: '✎',
     blurb: 'Earlier work from the chemistry bench and the computer next to it.',

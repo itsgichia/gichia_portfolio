@@ -135,3 +135,22 @@ class RsvScenario(BaseModel):
 
 class RsvCompareIn(BaseModel):
     scenarios: list[RsvScenario] = Field(min_length=1, max_length=6)
+
+
+class BioSeqIn(BaseModel):
+    sequence: str = Field(min_length=1, max_length=20000)
+    min_orf_aa: int = Field(30, ge=10, le=500)
+
+
+class BioAlignIn(BaseModel):
+    a: str = Field(min_length=1, max_length=20000)
+    b: str = Field(min_length=1, max_length=20000)
+    mode: Literal["global", "local"] = "global"
+    match: int = Field(2, ge=0, le=10)
+    mismatch: int = Field(-1, ge=-10, le=0)
+    gap: int = Field(-2, ge=-10, le=0)
+
+
+class BioTreeIn(BaseModel):
+    fasta: str = Field(min_length=1, max_length=60000)
+    distance: Literal["jc", "p"] = "jc"

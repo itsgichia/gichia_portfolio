@@ -12,11 +12,14 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
-from . import rsv
+from . import bio, rsv
 from .auth import admin_enabled, check_password, issue_token, require_admin
 from .db import Base, SessionLocal, engine, get_db
 from .models import Education, Experience, Message, Profile, Project
 from .schemas import (
+    BioAlignIn,
+    BioSeqIn,
+    BioTreeIn,
     EducationOut,
     ExperienceIn,
     ExperienceOut,
@@ -158,6 +161,33 @@ def rsv_simulate(body: RsvIn):
 @app.post("/api/rsv/compare")
 def rsv_compare(body: RsvCompareIn):
     return rsv.compare([(s.label, s.params) for s in body.scenarios])
+
+
+def _bio(fn, *args, **kwargs):
+    try:
+        return fn(*args, **kwargs)
+    except bio.BioError as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@app.get("/api/bio/examples")
+def bio_examples():
+    return bio.examples()
+
+
+@app.post("/api/bio/stats")
+def bio_stats(body: BioSeqIn):
+    return _bio(bio.stats, body.sequence, body.min_orf_aa)
+
+
+@app.post("/api/bio/align")
+def bio_align(body: BioAlignIn):
+    return _bio(bio.align, body.a, body.b, body.mode, body.match, body.mismatch, body.gap)
+
+
+@app.post("/api/bio/tree")
+def bio_tree(body: BioTreeIn):
+    return _bio(bio.tree, body.fasta, body.distance)
 
 
 # ---------------------------------------------------------------------------

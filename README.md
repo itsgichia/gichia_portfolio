@@ -4,6 +4,7 @@ My portfolio site, built like RHIP Connect: a React front end, a FastAPI backend
 
 - **Public site:** project cards with live links, skills and contact details, in a retro "lab" style with rain and cursor sparkles.
 - **RSV Lab** (`/lab/rsv`): an age-structured RSV transmission model that runs live in Python. The model has its own repository, `rsv-transmission-model`.
+- **Sequence Lab** (`/lab/seq`): sequence statistics, ORF finding, pairwise alignment and neighbour-joining trees, written from scratch in `Backend/app/bio.py`.
 - **Admin** (`/admin`): sign in to add or edit projects, publish or hide drafts, update the profile (including the phone number shown under Contact) and read contact messages.
 
 ```

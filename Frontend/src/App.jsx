@@ -7,6 +7,7 @@ import Login from './pages/Login'
 import Project from './pages/Project'
 import Projects from './pages/Projects'
 import RsvLab from './pages/RsvLab'
+import SeqLab from './pages/SeqLab'
 
 function NotFound() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:slug" element={<Project />} />
           <Route path="lab/rsv" element={<RsvLab />} />
+          <Route path="lab/seq" element={<SeqLab />} />
           <Route path="admin" element={<Admin />} />
           <Route path="admin/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />

@@ -9,7 +9,7 @@ export function Banner() {
         <Virion size={56} className="bob" />
         <span className="banner__title">Gichia Muiruri</span>
       </Link>
-      <p className="banner__sub">Health data science · epidemic modelling · software</p>
+      <p className="banner__sub">Health data science · biostatistics · software</p>
     </header>
   )
 }
