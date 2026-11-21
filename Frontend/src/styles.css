@@ -1467,3 +1467,69 @@ input[type='range'] {
 .table + .table {
   margin-top: 1.5rem;
 }
+
+/* --------------------------------------------- sequence lab: variants and medicine */
+.tone {
+  font-family: var(--term);
+  font-size: 0.814rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid currentColor;
+}
+.tone--ok {
+  color: var(--green);
+}
+.tone--warn {
+  color: var(--yellow);
+}
+.tone--bad {
+  color: var(--red);
+}
+.diplotype {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+.diplotype select {
+  width: 100%;
+}
+.pgx {
+  border-top: 1px dashed var(--line);
+  padding-top: 0.8rem;
+  margin-top: 1rem;
+}
+.pgx__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.pgx__head .subhead {
+  margin-top: 0;
+}
+.pgx__pheno {
+  font-size: var(--s-14);
+  white-space: nowrap;
+  margin: 0;
+}
+.pgx__pheno small {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+.pgx__drugs {
+  margin: 0.6rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.pgx__drugs dt {
+  font-family: var(--pixel);
+  font-size: 0.8rem;
+  color: var(--pink);
+}
+.pgx__drugs dd {
+  margin: 0.15rem 0 0;
+  font-size: var(--s-14);
+}
+.pgx__drugs dd a {
+  font-size: 0.8rem;
+}

@@ -20,12 +20,14 @@ from .schemas import (
     BioAlignIn,
     BioSeqIn,
     BioTreeIn,
+    BioVariantsIn,
     EducationOut,
     ExperienceIn,
     ExperienceOut,
     LoginIn,
     MessageIn,
     MessageOut,
+    PgxPanelIn,
     ProfileIn,
     ProfileOut,
     ProjectIn,
@@ -188,6 +190,21 @@ def bio_align(body: BioAlignIn):
 @app.post("/api/bio/tree")
 def bio_tree(body: BioTreeIn):
     return _bio(bio.tree, body.fasta, body.distance)
+
+
+@app.post("/api/bio/variants")
+def bio_variants(body: BioVariantsIn):
+    return _bio(bio.call_variants, body.reference, body.sample)
+
+
+@app.get("/api/bio/pgx/catalogue")
+def bio_pgx_catalogue():
+    return bio.pgx_catalogue()
+
+
+@app.post("/api/bio/pgx")
+def bio_pgx(body: PgxPanelIn):
+    return _bio(bio.pgx_panel, [(g.gene, g.allele_1, g.allele_2) for g in body.genotypes])
 
 
 # ---------------------------------------------------------------------------

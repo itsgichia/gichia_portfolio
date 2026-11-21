@@ -154,3 +154,19 @@ class BioAlignIn(BaseModel):
 class BioTreeIn(BaseModel):
     fasta: str = Field(min_length=1, max_length=60000)
     distance: Literal["jc", "p"] = "jc"
+
+
+class BioVariantsIn(BaseModel):
+    reference: str = Field(min_length=3, max_length=20000)
+    sample: str = Field(min_length=1, max_length=20000)
+
+
+class PgxGenotype(BaseModel):
+    gene: str = Field(min_length=2, max_length=20)
+    allele_1: str = Field(min_length=1, max_length=10)
+    allele_2: str = Field(min_length=1, max_length=10)
+
+
+class PgxPanelIn(BaseModel):
+    genotypes: list[PgxGenotype] = Field(min_length=1, max_length=8)
+

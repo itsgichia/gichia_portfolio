@@ -105,7 +105,7 @@ PROJECTS = [
         tags=["React", "Vite", "Tailwind CSS", "FastAPI", "PostgreSQL", "Firebase Auth", "Claude Haiku", "PubMed and ORCID"],
         metrics=[],
         live_url="https://rhip-connect.vercel.app",
-        repo_url=None,
+        repo_url="https://github.com/itsgichia/RHIP_Connect",
         featured=True,
         order_index=1,
     ),
@@ -134,7 +134,7 @@ PROJECTS = [
         tags=["React", "Material UI", "Recharts", "Flask", "SQLAlchemy", "SQLite", "JWT"],
         metrics=[],
         live_url=None,
-        repo_url=None,
+        repo_url="https://github.com/itsgichia/anzhfr-cohort-builder",
         featured=True,
         order_index=2,
     ),
@@ -169,30 +169,35 @@ PROJECTS = [
     dict(
         slug="sequence-lab",
         title="Sequence Lab",
-        tagline="Paste DNA or protein and get statistics, open reading frames, a pairwise alignment or a neighbour-joining tree",
+        tagline="From a raw sequence to a prescribing decision: alignment, trees, variant effects and pharmacogenomics",
         category="Bioinformatics",
         role="Personal project",
         year="2026",
         status="live",
         situation=(
-            "Bioinformatics toolkits hide the algorithms behind a command line. I wanted the core ones, the kind "
-            "taught in a first bioinformatics course, running in the browser where you can see what they do."
+            "Bioinformatics toolkits hide the algorithms behind a command line, and the step from a sequence to a "
+            "clinical decision is rarely shown end to end. I wanted the core methods in one readable package, with "
+            "a path all the way to personalised medicine."
         ),
         approach=(
-            "Wrote the routines from scratch in Python and NumPy: GC content and composition, six-frame ORF finding "
-            "and translation with the standard codon table, Needleman-Wunsch global and Smith-Waterman local "
-            "alignment with a traceback, Jukes-Cantor distances and Saitou-Nei neighbour joining with a Newick "
-            "export. A synthetic gene family with a known tree is bundled so the methods can be checked."
+            "Wrote the seqlab package from scratch in Python and NumPy: composition and GC content, six-frame ORF "
+            "finding and translation, Needleman-Wunsch and Smith-Waterman alignment with a vectorised row recurrence, "
+            "Jukes-Cantor distances and Saitou-Nei neighbour joining with Newick export. Then the personalised "
+            "medicine layer: variant calling between a reference coding sequence and a sample with HGVS names and "
+            "coding consequences (synonymous, missense, nonsense, in-frame indel, frameshift), and a pharmacogenomics "
+            "module that maps CYP2C19, CYP2D6, TPMT and SLCO1B1 diplotypes to metaboliser phenotypes and CPIC-based "
+            "recommendations for clopidogrel, codeine, azathioprine, simvastatin and others."
         ),
         outcome=(
-            "Runs live on this site's backend with size limits so a request returns in under a second. Scoring "
-            "uses simple match/mismatch/gap values rather than substitution matrices, so it is a teaching tool, "
-            "not a replacement for BLAST or IQ-TREE."
+            "Published as an installable package with a CLI, tests and CI; the portfolio backend installs it from "
+            "GitHub and serves it live with size limits so every request returns in about a second. Synthetic "
+            "examples with known answers are bundled so each method can be checked. It is a teaching tool with "
+            "simple scoring, and the pharmacogenomics tables are paraphrased and educational, not clinical advice."
         ),
-        tags=["Python", "NumPy", "Dynamic programming", "Phylogenetics", "FastAPI", "React"],
+        tags=["Python", "NumPy", "Dynamic programming", "Phylogenetics", "HGVS variants", "Pharmacogenomics", "FastAPI", "React"],
         metrics=[],
         live_url="/lab/seq",
-        repo_url=None,
+        repo_url="https://github.com/itsgichia/sequence-lab",
         featured=True,
         order_index=4,
     ),
@@ -214,9 +219,13 @@ PROJECTS = [
             "quality issues back to their source datasets. Engineered 40 clinical features and benchmarked four model "
             "families with bootstrap validation and decision curve analysis."
         ),
-        outcome="The selected model reached an AUC of 0.82. A manuscript is in preparation.",
+        outcome=(
+            "The selected model reached an AUC of 0.82. A manuscript is in preparation. The linked repository "
+            "re-implements the full pipeline on a synthetic cohort, since the study data are confidential."
+        ),
         tags=["R", "SQL", "XGBoost", "SHAP", "Power BI"],
         metrics=[],
+        repo_url="https://github.com/itsgichia/infant-bronchiolitis-prediction",
         featured=False,
         order_index=5,
     ),
@@ -233,9 +242,13 @@ PROJECTS = [
             "Synthesised the compound, then ran 200 molecular docking runs and built QSAR and machine learning models "
             "to predict activity, comparing binding with glibenclamide."
         ),
-        outcome="Shortlisted 5 high-affinity candidates.",
+        outcome=(
+            "Shortlisted 5 high-affinity candidates. The linked repository rebuilds the computational workflow on "
+            "open ChEMBL bioactivity data with a placeholder scaffold, as the thesis compound is not disclosed."
+        ),
         tags=["AutoDock Vina", "RDKit", "PyMOL", "QSAR"],
         metrics=[],
+        repo_url="https://github.com/itsgichia/sur1-antidiabetic-discovery",
         featured=False,
         order_index=6,
     ),

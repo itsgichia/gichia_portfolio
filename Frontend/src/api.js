@@ -49,6 +49,9 @@ export const api = {
   bioStats: (body) => request('/bio/stats', { method: 'POST', body }),
   bioAlign: (body) => request('/bio/align', { method: 'POST', body }),
   bioTree: (body) => request('/bio/tree', { method: 'POST', body }),
+  bioVariants: (body) => request('/bio/variants', { method: 'POST', body }),
+  bioPgxCatalogue: () => request('/bio/pgx/catalogue'),
+  bioPgx: (body) => request('/bio/pgx', { method: 'POST', body }),
 
   login: async (password) => {
     const { token } = await request('/auth/login', { method: 'POST', body: { password } })

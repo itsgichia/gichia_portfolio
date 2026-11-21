@@ -134,3 +134,20 @@ def test_sequence_lab():
         between = [tr["matrix"][idx[x]][idx[y]] for x in names if x.startswith("A") for y in names if y.startswith("B")]
         assert max(within) < min(between)
         assert c.post("/api/bio/tree", json={"fasta": ">x\nACGT\n>y\nACGA"}).status_code == 422
+
+
+def test_variants_and_pgx():
+    with TestClient(app) as c:
+        ex = c.get("/api/bio/examples").json()
+        v = c.post("/api/bio/variants", json={"reference": ex["variant_reference"], "sample": ex["variant_sample"]}).json()
+        assert v["n_variants"] == 5 and "frameshift" in v["consequences"]
+        assert c.post("/api/bio/variants", json={"reference": "CCCAAA", "sample": "CCCAAA"}).status_code == 422
+        cat = c.get("/api/bio/pgx/catalogue").json()
+        assert {g["gene"] for g in cat} == {"CYP2C19", "CYP2D6", "TPMT", "SLCO1B1"}
+        body = {"genotypes": [{"gene": g, "allele_1": a[0], "allele_2": a[1]} for g, a in ex["pgx"].items()]}
+        panel = c.post("/api/bio/pgx", json=body).json()
+        assert len(panel) == 4 and panel[0]["phenotype"] == "Intermediate metaboliser"
+        assert panel[0]["recommendations"][0]["url"].startswith("https://cpicpgx.org/")
+        bad = {"genotypes": [{"gene": "CYP2C19", "allele_1": "*1", "allele_2": "*99"}]}
+        assert c.post("/api/bio/pgx", json=bad).status_code == 422
+

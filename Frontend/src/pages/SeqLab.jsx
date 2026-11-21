@@ -9,6 +9,8 @@ const TOOLS = [
   ['stats', 'Sequence'],
   ['align', 'Align'],
   ['tree', 'Tree'],
+  ['variants', 'Variants'],
+  ['pgx', 'Medicine'],
 ]
 
 function useRun(fn) {
@@ -417,6 +419,258 @@ function TreeTool({ examples }) {
   )
 }
 
+/* ------------------------------------------------------------ variants */
+const CONSEQUENCE_TONE = {
+  synonymous: 'ok',
+  missense: 'warn',
+  nonsense: 'bad',
+  frameshift: 'bad',
+  'stop lost': 'bad',
+  'start lost': 'bad',
+}
+
+function Variants({ examples }) {
+  const [ref, setRef] = useState('')
+  const [sample, setSample] = useState('')
+  const [state, run] = useRun(api.bioVariants)
+  const d = state.data
+  return (
+    <div className="lab">
+      <form
+        className="controls"
+        onSubmit={(e) => {
+          e.preventDefault()
+          run({ reference: ref, sample })
+        }}
+      >
+        <fieldset>
+          <legend>Reference coding sequence</legend>
+          <label className="sr-only" htmlFor="ref-cds">
+            Reference coding sequence
+          </label>
+          <textarea id="ref-cds" className="seqbox seqbox--short" value={ref} onChange={(e) => setRef(e.target.value)} placeholder={'>gene\nATG… (from the start codon)'} spellCheck={false} />
+          <p className="hint">Position 1 is the A of ATG, so variants are named in HGVS coding coordinates (c.) and protein coordinates (p.).</p>
+        </fieldset>
+        <fieldset>
+          <legend>Sample</legend>
+          <label className="sr-only" htmlFor="sample-cds">
+            Sample sequence
+          </label>
+          <textarea id="sample-cds" className="seqbox seqbox--short" value={sample} onChange={(e) => setSample(e.target.value)} placeholder="the same gene from a sample" spellCheck={false} />
+          <button
+            type="button"
+            className="chip chip--small"
+            onClick={() => {
+              setRef(examples?.variant_reference || '')
+              setSample(examples?.variant_sample || '')
+            }}
+          >
+            Load example pair
+          </button>
+        </fieldset>
+        <button className="btn" type="submit" disabled={state.busy || !ref.trim() || !sample.trim()}>
+          {state.busy ? 'Calling…' : 'Call variants'}
+        </button>
+        {state.error && <p className="notice notice--error" role="alert">{state.error}</p>}
+      </form>
+
+      <div>
+        {!d && (
+          <p className="muted">
+            Paste a reference coding sequence and the same gene from a sample. The example carries one variant of each
+            class: synonymous, missense, in-frame deletion, nonsense and frameshift.
+          </p>
+        )}
+        {d && (
+          <>
+            <div className="stats">
+              <div className="stat">
+                <span className="stat__label">Variants</span>
+                <span className="stat__value">{d.n_variants}</span>
+                <span className="stat__sub">{d.identity_percent}% identity</span>
+              </div>
+              <div className="stat">
+                <span className="stat__label">Substitutions</span>
+                <span className="stat__value">{d.substitutions}</span>
+                <span className="stat__sub">Ti/Tv {d.ti_tv ?? '—'}</span>
+              </div>
+              <div className="stat">
+                <span className="stat__label">Indels</span>
+                <span className="stat__value">{d.indels}</span>
+              </div>
+              <div className="stat">
+                <span className="stat__label">Protein</span>
+                <span className="stat__value">{d.protein_truncated ? 'truncated' : 'full length'}</span>
+                <span className="stat__sub">
+                  {d.sample_protein.replace(/\*.*$/, '').length} of {d.reference_protein.replace(/\*.*$/, '').length} aa
+                </span>
+              </div>
+            </div>
+            <h3 className="subhead">☾ variant calls</h3>
+            {d.n_variants === 0 && <p className="muted">The sample is identical to the reference.</p>}
+            {d.n_variants > 0 && (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>cDNA</th>
+                      <th>Protein</th>
+                      <th>Consequence</th>
+                      <th>Codon</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.variants.map((v) => (
+                      <tr key={v.cdna}>
+                        <td>
+                          <code>{v.cdna}</code>
+                        </td>
+                        <td>
+                          <code>{v.protein}</code>
+                        </td>
+                        <td>
+                          <span className={`tone tone--${CONSEQUENCE_TONE[v.consequence] || 'warn'}`}>{v.consequence}</span>
+                          {v.transition != null && <span className="muted"> · {v.transition ? 'transition' : 'transversion'}</span>}
+                        </td>
+                        <td>{v.codon}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            <details className="frames">
+              <summary>Translated proteins</summary>
+              <p>
+                <b className="muted">reference</b> <code className="seq">{d.reference_protein}</code>
+              </p>
+              <p>
+                <b className="muted">sample</b> <code className="seq">{d.sample_protein}</code>
+              </p>
+            </details>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ---------------------------------------------------------------- pgx */
+const PHENO_TONE = (p) => {
+  if (/poor/i.test(p)) return 'bad'
+  if (/intermediate|decreased|rapid/i.test(p)) return 'warn'
+  return 'ok'
+}
+
+function Pgx({ examples }) {
+  const catalogue = useApi(api.bioPgxCatalogue)
+  const [picks, setPicks] = useState(null)
+  const [state, run] = useRun(api.bioPgx)
+  const genes = catalogue.data || []
+  useEffect(() => {
+    if (!picks && genes.length && examples?.pgx) {
+      setPicks(Object.fromEntries(genes.map((g) => [g.gene, examples.pgx[g.gene] || [g.alleles[0].allele, g.alleles[0].allele]])))
+    }
+  }, [genes, examples, picks])
+  const d = state.data
+  const set = (gene, i) => (e) => setPicks({ ...picks, [gene]: picks[gene].map((a, k) => (k === i ? e.target.value : a)) })
+  return (
+    <div className="lab">
+      <form
+        className="controls"
+        onSubmit={(e) => {
+          e.preventDefault()
+          run({ genotypes: genes.map((g) => ({ gene: g.gene, allele_1: picks[g.gene][0], allele_2: picks[g.gene][1] })) })
+        }}
+      >
+        {catalogue.error && <p className="notice notice--error">{catalogue.error}</p>}
+        {genes.map((g) => (
+          <fieldset key={g.gene}>
+            <legend>
+              {g.gene} <span className="muted">· {g.name}</span>
+            </legend>
+            <div className="diplotype">
+              {[0, 1].map((i) => (
+                <label key={i}>
+                  <span className="sr-only">
+                    {g.gene} allele {i + 1}
+                  </span>
+                  <select value={picks?.[g.gene]?.[i] || ''} onChange={set(g.gene, i)}>
+                    {g.alleles.map((a) => (
+                      <option key={a.allele} value={a.allele}>
+                        {a.allele} · {a.function}
+                        {a.activity != null ? ` (${a.activity})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+            </div>
+            <p className="hint">
+              {g.input === 'snp' ? `Genotype at ${g.variant.rsid} (${g.variant.cdna}, ${g.variant.protein}). ` : ''}
+              {g.drugs.map((x) => x.drug).join(', ')}
+            </p>
+          </fieldset>
+        ))}
+        <button className="btn" type="submit" disabled={state.busy || !picks}>
+          {state.busy ? 'Working…' : 'Build report'}
+        </button>
+        {state.error && <p className="notice notice--error" role="alert">{state.error}</p>}
+      </form>
+
+      <div>
+        {!d && (
+          <p className="muted">
+            Choose a diplotype for each pharmacogene and press Build report. The defaults are a patient who carries one
+            reduced-function allele at every gene, which is common.
+          </p>
+        )}
+        {d && (
+          <>
+            <p className="notice">
+              Educational summary paraphrased from CPIC guidelines. A real pharmacogenomic report tests many more alleles and
+              is interpreted by a clinician. This is not medical advice.
+            </p>
+            {d.map((r) => (
+              <article key={r.gene} className="pgx">
+                <header className="pgx__head">
+                  <div>
+                    <h3 className="subhead">
+                      ☾ {r.gene} {r.diplotype}
+                    </h3>
+                    <p className="muted">{r.gene_role}</p>
+                  </div>
+                  <p className={`pgx__pheno tone tone--${PHENO_TONE(r.phenotype)}`}>
+                    {r.phenotype}
+                    {r.activity_score != null && <small> · activity score {r.activity_score}</small>}
+                  </p>
+                </header>
+                <dl className="pgx__drugs">
+                  {r.recommendations.map((x) => (
+                    <div key={x.drug}>
+                      <dt>{x.drug}</dt>
+                      <dd>
+                        {x.recommendation}{' '}
+                        <a href={x.url} target="_blank" rel="noreferrer" className="muted">
+                          {x.guideline}
+                        </a>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <details className="frames">
+                  <summary>About the alleles</summary>
+                  <p>{r.notes}</p>
+                </details>
+              </article>
+            ))}
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /* ---------------------------------------------------------------- page */
 export default function SeqLab() {
   const [search, setSearch] = useSearchParams()
@@ -434,9 +688,14 @@ export default function SeqLab() {
       <Win title="sequence_lab" icon="⌘">
         <h1 className="article__title">Sequence Lab</h1>
         <p className="article__lede">
-          The core algorithms of a first bioinformatics course, written from scratch and running on this server: sequence
-          statistics and open reading frames, pairwise alignment by dynamic programming, and a neighbour-joining tree.
-          Nothing you paste is stored.
+          From a raw sequence to a prescribing decision, written from scratch and running on this server: sequence
+          statistics and open reading frames, pairwise alignment, a neighbour-joining tree, variant calls with their
+          effect on the protein, and a pharmacogenomics report that turns a genotype into a dosing recommendation.
+          Nothing you paste is stored. Source:{' '}
+          <a href="https://github.com/itsgichia/sequence-lab" target="_blank" rel="noreferrer">
+            github.com/itsgichia/sequence-lab
+          </a>
+          .
         </p>
         <div className="filters" role="tablist" aria-label="Tool">
           {TOOLS.map(([k, label]) => (
@@ -448,6 +707,8 @@ export default function SeqLab() {
         {tool === 'stats' && <Stats examples={examples.data} />}
         {tool === 'align' && <Align examples={examples.data} />}
         {tool === 'tree' && <TreeTool examples={examples.data} />}
+        {tool === 'variants' && <Variants examples={examples.data} />}
+        {tool === 'pgx' && <Pgx examples={examples.data} />}
       </Win>
 
       <Win title="method" icon="✎" className="method">
@@ -464,8 +725,18 @@ export default function SeqLab() {
             and Nei's neighbour-joining algorithm. Output is also given in Newick format for other tools.
           </li>
           <li>
+            <b>Variants</b> come from a global alignment of sample to reference. Each run of differing columns becomes one
+            variant in HGVS coding notation; applying it alone to the reference and translating both tells whether it is
+            synonymous, missense, nonsense, an in-frame indel or a frameshift.
+          </li>
+          <li>
+            <b>Medicine</b> encodes the CPIC function tables for CYP2C19, CYP2D6 (activity score), TPMT and SLCO1B1, maps a
+            diplotype to a metaboliser phenotype and shows the paraphrased recommendation for six drugs, each linked to its
+            guideline.
+          </li>
+          <li>
             This is a teaching tool with simple scoring. For real work use BLAST, MAFFT or IQ-TREE, which handle
-            substitution matrices, affine gaps and model selection.
+            substitution matrices, affine gaps and model selection, and a clinical pharmacogenomics service for prescribing.
           </li>
         </ul>
       </Win>
