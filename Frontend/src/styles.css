@@ -1534,18 +1534,20 @@ input[type='range'] {
   font-size: 0.8rem;
 }
 
-/* --------------------------------------------- pixel title */
-.pixelname {
+/* --------------------------------------------- site title */
+.banner__name {
   display: block;
-  image-rendering: pixelated;
-  filter: drop-shadow(0 0 6px rgba(226, 236, 245, 0.3));
-  max-width: 100%;
-  height: auto;
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: clamp(2rem, 7vw, 3.4rem);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: #ffffff;
+  text-shadow: 0 0 14px rgba(226, 236, 245, 0.18);
 }
 @media (max-width: 600px) {
-  .pixelname {
-    width: min(100%, 320px) !important;
-    height: auto !important;
+  .banner__name {
+    font-size: clamp(1.75rem, 9vw, 2.4rem);
   }
 }
 
