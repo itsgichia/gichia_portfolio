@@ -11,7 +11,7 @@ export function Banner() {
         <PixelName text="Gichia Muiruri" />
         <span className="sr-only">Gichia Muiruri</span>
       </Link>
-      <p className="banner__sub">Health data science · biostatistics · software</p>
+      <p className="banner__sub">Scientist · health data · software</p>
     </header>
   )
 }
