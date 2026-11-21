@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import ChemFigure from './ChemFigure'
 import HeroFigure from './HeroFigure'
 import { SeqFigure } from './SeqFigure'
 import { AnzhfrMock, RhipMock } from './ProjectMocks'
@@ -11,6 +12,7 @@ function ProjectVisual({ p, color }) {
   if (p.slug === 'sequence-lab') return <SeqFigure />
   if (p.slug === 'rhip-connect') return <RhipMock />
   if (p.slug === 'anzhfr-cohort-builder') return <AnzhfrMock />
+  if (p.slug === 'antidiabetic-drug-discovery') return <ChemFigure />
   return (
     <div className="room__blank" style={{ '--c': color }} aria-hidden="true">
       <span>{p.title}</span>
