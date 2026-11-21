@@ -358,7 +358,9 @@ PROJECTS = [
             "families with bootstrap validation and decision curve analysis."
         ),
         outcome=(
-            "The selected model reached an AUC of 0.82. A manuscript is in preparation. The linked repository "
+            "Penalised regression was selected. Its apparent AUC of 0.794 corrects to 0.757 once a thousand cluster "
+            "bootstrap resamples are used to take optimism off it, and held-out cluster-aware validation agrees at "
+            "0.745, with a 95% interval from 0.690 to 0.798. A manuscript is in preparation. The linked repository "
             "re-implements the full pipeline on a synthetic cohort, since the study data are confidential."
         ),
         tags=["R", "SQL", "XGBoost", "SHAP", "Power BI"],
@@ -402,7 +404,7 @@ EXPERIENCE = [
         bullets=[
             "Building machine learning models with the Breathing for Life cohort to establish whether infants born to mothers with asthma are more likely to develop wheeze or bronchiolitis, using linked general practice, emergency department and birth records.",
             "Traced more than 200 data quality issues to their source datasets through linkage validation and plausibility checks, working under data custodian and ethics approvals.",
-            "Benchmarked four model families with bootstrap validation and decision curve analysis (AUC 0.82), and built Power BI dashboards for 15 clinician researchers.",
+            "Benchmarked four model families with bootstrap validation and decision curve analysis (optimism-corrected AUC 0.757), and built Power BI dashboards for 15 clinician researchers.",
         ],
         order_index=1,
     ),

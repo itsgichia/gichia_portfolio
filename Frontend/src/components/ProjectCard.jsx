@@ -3,16 +3,28 @@ import ChemFigure from './ChemFigure'
 import HeroFigure from './HeroFigure'
 import { SeqFigure } from './SeqFigure'
 import { AnzhfrMock, RhipMock } from './ProjectMocks'
+import { BronchFigure, FnaFigure, HistoFigure, IcdFigure, LigandFigure } from './ProjectFigures'
 
 export const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
 
-function ProjectVisual({ p, color }) {
+/** Every project has its own figure, keyed by slug. */
+const FIGURES = {
+  'rsv-transmission-lab': HeroFigure,
+  'sequence-lab': SeqFigure,
+  'rhip-connect': RhipMock,
+  'anzhfr-cohort-builder': AnzhfrMock,
+  'antidiabetic-drug-discovery': ChemFigure,
+  'histopath-metastasis-cnn': HistoFigure,
+  'ligand-activity-ml': LigandFigure,
+  'icd10am-llm-coding': IcdFigure,
+  'fna-ann-vs-logistic': FnaFigure,
+  'infant-bronchiolitis-prediction': BronchFigure,
+}
+
+export function ProjectVisual({ p, color }) {
   if (p.image_url) return <img className="room__shot" src={p.image_url} alt={`Screenshot of ${p.title}`} loading="lazy" />
-  if (p.slug === 'rsv-transmission-lab') return <HeroFigure />
-  if (p.slug === 'sequence-lab') return <SeqFigure />
-  if (p.slug === 'rhip-connect') return <RhipMock />
-  if (p.slug === 'anzhfr-cohort-builder') return <AnzhfrMock />
-  if (p.slug === 'antidiabetic-drug-discovery') return <ChemFigure />
+  const Fig = FIGURES[p.slug]
+  if (Fig) return <Fig />
   return (
     <div className="room__blank" style={{ '--c': color }} aria-hidden="true">
       <span>{p.title}</span>
