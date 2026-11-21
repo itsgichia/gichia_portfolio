@@ -1538,7 +1538,7 @@ input[type='range'] {
 .pixelname {
   display: block;
   image-rendering: pixelated;
-  filter: drop-shadow(0 0 6px rgba(45, 212, 191, 0.35));
+  filter: drop-shadow(0 0 6px rgba(226, 236, 245, 0.3));
   max-width: 100%;
   height: auto;
 }
