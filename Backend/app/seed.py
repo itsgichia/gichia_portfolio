@@ -202,6 +202,73 @@ PROJECTS = [
         order_index=4,
     ),
     dict(
+        slug="histopath-metastasis-cnn",
+        title="Finding metastasis in lymph node tissue",
+        tagline="Four deep learning approaches on histopathology image patches, including one that only ever sees healthy tissue",
+        category="Medical imaging",
+        role="Personal project, from coursework at UNSW",
+        year="2025",
+        status="completed",
+        situation=(
+            "Checking sentinel lymph nodes for metastatic breast cancer means a pathologist scanning large tissue "
+            "sections for small deposits, which is slow and easy to miss. I wanted to compare the usual deep learning "
+            "approaches on this task and test one that needs no tumour labels at all."
+        ),
+        approach=(
+            "Trained four models on PatchCamelyon, a public set of 96 by 96 pixel lymph node patches: a convolutional "
+            "network from scratch, a convolutional autoencoder trained without labels, two transfer learning "
+            "classifiers reusing that encoder frozen and fine-tuned, and an anomaly detector trained only on benign "
+            "patches that scores tissue by how badly it reconstructs. Thresholds were chosen on validation data and "
+            "the whole run is deterministic and reproduces to four decimal places."
+        ),
+        outcome=(
+            "The supervised network won with an area under the curve of 0.92. Unsupervised pretraining did capture "
+            "real structure: a frozen encoder with only 8,321 trainable parameters still reached 0.83, and fine-tuning "
+            "matched the baseline in one epoch instead of six. The anomaly detector failed, scoring 0.43, below chance "
+            "in both validation and test. Dense lymphocyte texture is harder to reconstruct than bulkier tumour, so "
+            "the error tracks spatial detail rather than disease. That negative result is reported as it stands."
+        ),
+        tags=["Python", "PyTorch", "CNN", "Autoencoder", "Transfer learning", "Anomaly detection"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/histopath-metastasis-cnn",
+        featured=True,
+        order_index=5,
+    ),
+    dict(
+        slug="fna-ann-vs-logistic",
+        title="Does a neural network earn its complexity?",
+        tagline="Neural network against regularised logistic regression on breast cytology, judged on calibration and clinical usefulness, not accuracy alone",
+        category="Machine learning",
+        role="Personal project, from coursework at UNSW",
+        year="2025",
+        status="completed",
+        situation=(
+            "Neural networks are reported as beating simpler models on small clinical datasets all the time, usually on "
+            "accuracy alone and often without testing whether the gap is real. I wanted to run that comparison properly "
+            "on a problem where a missed cancer costs far more than a false alarm."
+        ),
+        approach=(
+            "Classified breast tumours as malignant or benign from fine needle aspiration cytology features, comparing "
+            "four logistic regression variants, a tuned feedforward network, the same network on principal components, "
+            "and two tree ensembles. Everything was selected by repeated stratified cross-validation with scaling inside "
+            "the folds, the test set was touched once, and the difference in area under the curve was tested with both "
+            "DeLong and a paired bootstrap. Calibration, decision curves and sensitivity-constrained operating points "
+            "were reported alongside discrimination."
+        ),
+        outcome=(
+            "The network did not beat logistic regression: the difference in area under the curve was −0.0007, with a "
+            "confidence interval straddling zero. The honest finding is that 114 test cases cannot resolve differences "
+            "this small, and adding any penalty to the logistic model moved accuracy thirty times more than the network "
+            "did, still without reaching significance. Where the models did separate was the operating point: holding "
+            "99% sensitivity, logistic regression kept 88% specificity while the tree ensembles fell to 53%."
+        ),
+        tags=["Python", "PyTorch", "scikit-learn", "Calibration", "Decision curve analysis", "DeLong test"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/fna-ann-vs-logistic",
+        featured=False,
+        order_index=8,
+    ),
+    dict(
         slug="infant-bronchiolitis-prediction",
         title="Predicting wheeze and bronchiolitis in infants",
         tagline="Machine learning on linked health records from the Breathing for Life cohort",
@@ -227,7 +294,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/infant-bronchiolitis-prediction",
         featured=False,
-        order_index=5,
+        order_index=9,
     ),
     dict(
         slug="antidiabetic-drug-discovery",
@@ -250,7 +317,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/sur1-antidiabetic-discovery",
         featured=False,
-        order_index=6,
+        order_index=10,
     ),
 ]
 

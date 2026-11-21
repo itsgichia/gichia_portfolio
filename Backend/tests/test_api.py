@@ -29,7 +29,8 @@ def test_admin_requires_login():
         assert c.post("/api/auth/login", json={"password": "wrong"}).status_code == 401
         token = c.post("/api/auth/login", json={"password": "test-password"}).json()["token"]
         h = {"Authorization": f"Bearer {token}"}
-        assert len(c.get("/api/admin/projects", headers=h).json()) == 6
+        from app.seed import PROJECTS
+        assert len(c.get("/api/admin/projects", headers=h).json()) == len(PROJECTS)
         assert c.get("/api/admin/projects", headers={"Authorization": "Bearer forged.token"}).status_code == 401
 
 
