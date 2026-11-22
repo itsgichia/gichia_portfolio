@@ -327,7 +327,8 @@ PROJECTS = [
         outcome=(
             "Random splits overstate performance substantially. Averaged across every target and model, a scaffold "
             "split costs 0.08 in area under the curve and a time split 0.15, and for the regression task the fall is "
-            "steeper, with average R squared dropping from 0.67 to 0.46 to 0.23. Ridge regression turns outright "
+            "steeper still: average R squared drops from 0.59 to 0.34 and then below zero, to −0.03, which is worse "
+            "than predicting the training mean. Ridge regression turns outright "
             "negative under a time split on four of five targets. The cause is visible directly: under a random split "
             "between 62 and 73 percent of test compounds share a scaffold with something in training, against none "
             "under a scaffold split. Choosing the representation matters half as much as choosing the split."
