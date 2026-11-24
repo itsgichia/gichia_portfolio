@@ -2228,6 +2228,58 @@ input[type='range'] {
   }
 }
 
+/* --- ICD coding lab --- */
+.icdlab__runs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
+  margin-top: 1rem;
+}
+@media (max-width: 720px) {
+  .icdlab__runs {
+    grid-template-columns: 1fr;
+  }
+}
+.icdlab__run {
+  border: 2px solid var(--line);
+  padding: 0.75rem;
+  display: grid;
+  gap: 0.4rem;
+}
+.icdlab__pre {
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 260px;
+  overflow: auto;
+  background: #07061a;
+  border: 2px solid var(--line);
+  padding: 0.6rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.icdlab__read {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  font-size: var(--s-14);
+}
+.icdlab__read > span:first-child {
+  font-family: var(--pixel);
+  font-size: 0.7rem;
+  color: var(--dim);
+}
+.icdlab__code {
+  font-family: var(--pixel);
+  font-size: 1.1rem;
+  color: var(--yellow);
+}
+.icdlab__code--bad {
+  color: var(--red);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pfig__meter i,
   .cnn__phase--a,

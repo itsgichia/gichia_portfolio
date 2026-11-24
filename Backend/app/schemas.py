@@ -115,6 +115,10 @@ class MessageOut(BaseModel):
     created_at: datetime
 
 
+class IcdIn(BaseModel):
+    note: str = Field(min_length=40, max_length=6000)
+
+
 class RsvIn(BaseModel):
     r0: float = Field(1.6, ge=1.1, le=3.0)
     seasonal_amplitude: float = Field(0.4, ge=0.0, le=0.8)

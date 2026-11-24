@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
-from . import bio, rsv
+from . import bio, icd, rsv
 from .auth import admin_enabled, check_password, issue_token, require_admin
 from .db import Base, SessionLocal, engine, get_db
 from .models import Education, Experience, Message, Profile, Project
@@ -23,6 +23,7 @@ from .schemas import (
     BioVariantsIn,
     EducationOut,
     ExperienceIn,
+    IcdIn,
     ExperienceOut,
     LoginIn,
     MessageIn,
@@ -163,6 +164,33 @@ def rsv_simulate(body: RsvIn):
 @app.post("/api/rsv/compare")
 def rsv_compare(body: RsvCompareIn):
     return rsv.compare([(s.label, s.params) for s in body.scenarios])
+
+
+@app.get("/api/icd/status")
+def icd_status():
+    return icd.status()
+
+
+@app.get("/api/icd/examples")
+def icd_examples():
+    return icd.examples()
+
+
+_icd_log: dict[str, deque] = defaultdict(deque)
+
+
+@app.post("/api/icd/code")
+def icd_code(body: IcdIn, request: Request):
+    if not icd.available():
+        raise HTTPException(503, "The coding lab is not switched on for this server.")
+    if _over_limit(_icd_log, _client_ip(request), 10):
+        raise HTTPException(429, "Ten notes an hour per visitor. Try again later.")
+    if _over_limit(_icd_log, "everyone", 300, window=86400):
+        raise HTTPException(429, "The lab has used its daily budget. Try again tomorrow.")
+    try:
+        return icd.code_note(body.note)
+    except icd.ModelError as e:
+        raise HTTPException(502, str(e)) from e
 
 
 def _bio(fn, *args, **kwargs):

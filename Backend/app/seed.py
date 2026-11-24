@@ -421,7 +421,7 @@ PROJECTS = [
         category="Clinical NLP",
         role="Personal project",
         year="2026",
-        status="completed",
+        status="live",
         situation=(
             "The companion study on a 0.5 billion parameter model scored zero under every prompt, which left one question "
             "open: with a model that has not memorised the code table, you cannot tell how much of the failure is "
@@ -448,6 +448,7 @@ PROJECTS = [
         ),
         tags=["Python", "Claude API", "Message Batches", "Prompt engineering", "Clinical coding"],
         metrics=[],
+        live_url="/lab/icd",
         repo_url="https://github.com/itsgichia/icd10am-claude-coding",
         featured=True,
         order_index=9,
@@ -631,12 +632,33 @@ EDUCATION = [
 ]
 
 
+def _add_missing_projects(db) -> None:
+    """Insert projects added to PROJECTS since the database was first seeded, and keep the order current.
+
+    Text edited through the admin page is left alone: only new slugs are inserted and
+    order_index is realigned, so a deploy with new content needs no manual re-seed.
+    """
+    existing = {p.slug: p for p in db.query(Project).all()}
+    changed = False
+    for p in PROJECTS:
+        row = existing.get(p["slug"])
+        if row is None:
+            db.add(Project(**p))
+            changed = True
+        elif row.order_index != p["order_index"]:
+            row.order_index = p["order_index"]
+            changed = True
+    if changed:
+        db.commit()
+
+
 def seed(db, reset: bool = False) -> None:
     if reset:
         for model in (Project, Experience, Education, Profile):
             db.query(model).delete()
         db.commit()
     if db.get(Profile, 1):
+        _add_missing_projects(db)
         return
     db.add(Profile(**PROFILE))
     db.add_all(Project(**p) for p in PROJECTS)
