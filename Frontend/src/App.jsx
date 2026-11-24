@@ -3,6 +3,7 @@ import Layout from './components/Layout'
 import { Win } from './components/Retro'
 import Admin from './pages/Admin'
 import Home from './pages/Home'
+import IcdLab from './pages/IcdLab'
 import Login from './pages/Login'
 import Project from './pages/Project'
 import Projects from './pages/Projects'
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="projects/:slug" element={<Project />} />
           <Route path="lab/rsv" element={<RsvLab />} />
           <Route path="lab/seq" element={<SeqLab />} />
+          <Route path="lab/icd" element={<IcdLab />} />
           <Route path="admin" element={<Admin />} />
           <Route path="admin/login" element={<Login />} />
           <Route path="*" element={<NotFound />} />

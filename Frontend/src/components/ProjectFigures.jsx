@@ -12,7 +12,7 @@
  */
 
 /** A labelled row with a meter underneath, used in the notes column. */
-function Row({ label, value, pct, bad }) {
+export function Row({ label, value, pct, bad }) {
   return (
     <li>
       <span>{label}</span>
@@ -24,7 +24,7 @@ function Row({ label, value, pct, bad }) {
   )
 }
 
-function Figure({ title, sub, svg, children, caption }) {
+export function Figure({ title, sub, svg, children, caption }) {
   return (
     <figure className="figure" style={{ margin: 0 }}>
       <p className="figure__title">{title}</p>
@@ -39,7 +39,7 @@ function Figure({ title, sub, svg, children, caption }) {
 }
 
 // Deterministic, so textures are identical on every render.
-const hash = (n) => {
+export const hash = (n) => {
   const x = Math.sin(n * 12.9898) * 43758.5453
   return x - Math.floor(x)
 }

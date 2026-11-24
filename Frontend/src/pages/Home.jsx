@@ -197,7 +197,7 @@ function Contact({ profile }) {
 
   return (
     <Win title="contact" icon="☎" id="contact">
-      <p>Open to full-time roles in health data science, biostatistics, research and software engineering.</p>
+      <p>Open to full-time roles in health data science, scientific research and software engineering.</p>
       <dl className="contact">
         {rows.map((r) => (
           <div key={r.label}>

@@ -3,13 +3,16 @@ import ChemFigure from './ChemFigure'
 import HeroFigure from './HeroFigure'
 import { SeqFigure } from './SeqFigure'
 import { AnzhfrMock, RhipMock } from './ProjectMocks'
+import { ClaudeIcdFigure } from './ClaudeIcdFigure'
 import { BronchFigure, FnaFigure, HistoFigure, IcdFigure, LigandFigure } from './ProjectFigures'
+import { RsvFitFigure } from './RsvFitFigure'
 
 export const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
 
 /** Every project has its own figure, keyed by slug. */
 const FIGURES = {
   'rsv-transmission-lab': HeroFigure,
+  'rsv-bayesian-calibration': RsvFitFigure,
   'sequence-lab': SeqFigure,
   'rhip-connect': RhipMock,
   'anzhfr-cohort-builder': AnzhfrMock,
@@ -17,6 +20,7 @@ const FIGURES = {
   'histopath-metastasis-cnn': HistoFigure,
   'ligand-activity-ml': LigandFigure,
   'icd10am-llm-coding': IcdFigure,
+  'icd10am-claude-coding': ClaudeIcdFigure,
   'fna-ann-vs-logistic': FnaFigure,
   'infant-bronchiolitis-prediction': BronchFigure,
 }

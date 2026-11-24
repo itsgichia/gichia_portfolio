@@ -152,3 +152,85 @@ def test_variants_and_pgx():
         bad = {"genotypes": [{"gene": "CYP2C19", "allele_1": "*1", "allele_2": "*99"}]}
         assert c.post("/api/bio/pgx", json=bad).status_code == 422
 
+
+
+def test_seed_adds_projects_missing_from_an_existing_database():
+    from app.db import SessionLocal
+    from app.models import Project
+    from app.seed import PROJECTS, seed
+
+    with client():
+        pass
+    with SessionLocal() as db:
+        victim = db.query(Project).filter_by(slug="icd10am-claude-coding").one()
+        db.delete(victim)
+        db.query(Project).filter_by(slug="rhip-connect").update({"order_index": 99})
+        db.commit()
+        seed(db)
+        assert db.query(Project).count() == len(PROJECTS)
+        assert db.query(Project).filter_by(slug="rhip-connect").one().order_index == 1
+
+
+class _FakeBlock:
+    type = "text"
+
+    def __init__(self, text):
+        self.text = text
+
+
+class _FakeUsage:
+    input_tokens = 500
+    output_tokens = 12
+
+
+class _FakeMessage:
+    stop_reason = "end_turn"
+    usage = _FakeUsage()
+
+    def __init__(self, text):
+        self.content = [_FakeBlock(text)]
+
+
+class _FakeMessages:
+    def __init__(self):
+        self.calls = []
+
+    def create(self, **params):
+        self.calls.append(params)
+        if params.get("system"):
+            return _FakeMessage("K80")
+        return _FakeMessage("The principal diagnosis is K80 (cholelithiasis); consider also K81 and K83.")
+
+
+class _FakeClient:
+    def __init__(self):
+        self.messages = _FakeMessages()
+
+
+NOTE = "The patient was admitted with right upper quadrant pain, fever and gallstones seen on ultrasound. " * 2
+
+
+def test_icd_lab(monkeypatch):
+    from app import icd
+
+    with client() as c:
+        monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+        assert c.get("/api/icd/status").json()["available"] is False
+        assert len(c.get("/api/icd/examples").json()) == 3
+        assert c.post("/api/icd/code", json={"note": NOTE}).status_code == 503
+
+        monkeypatch.setenv("ANTHROPIC_API_KEY", "test-only")
+        fake = _FakeClient()
+        monkeypatch.setattr(icd, "_get_client", lambda: fake)
+        assert c.post("/api/icd/code", json={"note": "too short"}).status_code == 422
+        r = c.post("/api/icd/code", json={"note": NOTE})
+        assert r.status_code == 200, r.text
+        runs = r.json()["runs"]
+        assert [x["strategy"] for x in runs] == ["plain question", "strict format"]
+        assert runs[0]["code"] == "K80" and runs[0]["candidates"] == ["K80", "K81", "K83"]
+        assert runs[1]["code"] == "K80" and runs[1]["method"] == "bare"
+        assert fake.messages.calls[0]["model"] == icd.MODEL and fake.messages.calls[0]["output_config"] == {"effort": "low"}
+        assert "Hospital course:" in fake.messages.calls[0]["messages"][0]["content"]
+        for _ in range(9):
+            c.post("/api/icd/code", json={"note": NOTE})
+        assert c.post("/api/icd/code", json={"note": NOTE}).status_code == 429

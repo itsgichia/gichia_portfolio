@@ -52,6 +52,9 @@ export const api = {
   bioVariants: (body) => request('/bio/variants', { method: 'POST', body }),
   bioPgxCatalogue: () => request('/bio/pgx/catalogue'),
   bioPgx: (body) => request('/bio/pgx', { method: 'POST', body }),
+  icdStatus: () => request('/icd/status'),
+  icdExamples: () => request('/icd/examples'),
+  icdCode: (body) => request('/icd/code', { method: 'POST', body }),
 
   login: async (password) => {
     const { token } = await request('/auth/login', { method: 'POST', body: { password } })
