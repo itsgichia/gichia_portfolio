@@ -235,6 +235,45 @@ PROJECTS = [
         order_index=3,
     ),
     dict(
+        slug="rsv-bayesian-calibration",
+        title="Can the RSV model be calibrated to NSW surveillance?",
+        tagline="Bayesian fitting of the age-structured model to NSW notifications, gated by a parameter-recovery test it has not yet passed",
+        category="Infectious disease modelling",
+        role="Personal project",
+        year="2026",
+        status="in-progress",
+        situation=(
+            "The RSV lab above is not fitted to Australian data, so every number it produces is illustrative. RSV became "
+            "notifiable in New South Wales in September 2022 and the state's infectious diseases dashboard serves monthly "
+            "counts by age through an undocumented REST API. Fitting the model to that series would let the immunisation "
+            "scenarios carry credible intervals instead of point estimates."
+        ),
+        approach=(
+            "Wrote a fetcher for the NSW API that assembles 50 months of notifications in eight age bands and cross-checks "
+            "the under-five total against a second report. Wrapped the ODE as a black-box operation inside PyMC with a "
+            "negative-binomial likelihood on monthly counts by age, priors written down before fitting, and sequential "
+            "Monte Carlo sampling because the model has no gradient. Before pointing it at the real data, ran the check "
+            "that has to pass first: simulate three years of counts from known parameters, fit them, and see whether the "
+            "truth lands inside the 95% intervals."
+        ),
+        outcome=(
+            "It did not, and the failure was informative. Eight of fourteen parameters were recovered. The posterior put "
+            "R0 at 1.50 with 200 days of immunity against a truth of 1.6 and 230, and over-dispersion at 6 against 20, each "
+            "with narrow intervals that excluded the truth. A local optimiser started from the posterior reached a "
+            "likelihood within two units of the truth without leaving that region, so the two parameter sets are a ridge "
+            "three years of monthly counts cannot resolve, and the sampler's 200 particles explored neither the ridge "
+            "nor the over-dispersion. The model also runs a two-year cycle at these parameters, which makes the "
+            "endemic starting state depend on whether the burn-in is an odd or even number of years. Next: a prior on "
+            "immunity duration from cohort studies, initial conditions fitted rather than burned in, and a longer or "
+            "different sampler. The NSW series stays unfitted until the recovery test passes."
+        ),
+        tags=["Python", "PyMC", "Sequential Monte Carlo", "ODE", "NSW surveillance data"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/rsv-transmission-model",
+        featured=True,
+        order_index=4,
+    ),
+    dict(
         slug="sequence-lab",
         title="Sequence Lab",
         tagline="From a raw sequence to a prescribing decision: alignment, trees, variant effects and pharmacogenomics",
@@ -267,7 +306,7 @@ PROJECTS = [
         live_url="/lab/seq",
         repo_url="https://github.com/itsgichia/sequence-lab",
         featured=True,
-        order_index=4,
+        order_index=5,
     ),
     dict(
         slug="histopath-metastasis-cnn",
@@ -300,7 +339,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/histopath-metastasis-cnn",
         featured=True,
-        order_index=5,
+        order_index=6,
     ),
     dict(
         slug="ligand-activity-ml",
@@ -337,7 +376,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/ligand-activity-ml",
         featured=True,
-        order_index=6,
+        order_index=7,
     ),
     dict(
         slug="icd10am-llm-coding",
@@ -366,13 +405,52 @@ PROJECTS = [
             "the shape of the answer completely and its content not at all. Every strategy carrying six examples "
             "answered only with codes from its own examples, and the briefing on classification structure made the "
             "model answer every case with an infectious disease code, because that was the chapter the briefing named "
-            "first. A negative result, reported as one."
+            "first. A negative result, reported as one, and the reason the companion study below re-runs the same "
+            "nine strategies on models that do know the codes."
         ),
         tags=["Python", "PyTorch", "Hugging Face", "Prompt engineering", "Qwen2.5", "Clinical coding"],
         metrics=[],
         repo_url="https://github.com/itsgichia/icd10am-llm-coding",
         featured=True,
-        order_index=7,
+        order_index=8,
+    ),
+    dict(
+        slug="icd10am-claude-coding",
+        title="What does prompt engineering change when the model already knows the codes?",
+        tagline="The same nine prompt strategies re-run on Claude Haiku, Sonnet and Opus against the same keyword labels",
+        category="Clinical NLP",
+        role="Personal project",
+        year="2026",
+        status="completed",
+        situation=(
+            "The companion study on a 0.5 billion parameter model scored zero under every prompt, which left one question "
+            "open: with a model that has not memorised the code table, you cannot tell how much of the failure is "
+            "formatting and how much is knowledge. I re-ran the study on models that know the codes, to see what "
+            "prompting changes when knowledge is no longer the constraint."
+        ),
+        approach=(
+            "Kept the nine strategies, the record selection rule, the keyword labelling rule, the extractor and the "
+            "metrics identical to the Qwen study, and ran them over 100 development and 100 held-out notes on Claude "
+            "Haiku 5.5, Sonnet 5.5 and Opus 5.5 through the Message Batches API: 4,200 requests for about US$12, every "
+            "raw response cached. Scored against the same keyword labels as before, then asked two label-free "
+            "questions of every response: how many codes did the model write, and was the first one right?"
+        ),
+        outcome=(
+            "Every well-parsed strategy scored 0.45 to 0.54 on every model, and the three tiers were indistinguishable "
+            "on the held-out split: Haiku 0.51, Sonnet 0.51, Opus 0.52, against Qwen's zero. Prompt strategy changed "
+            "what the extractor could read, not what the model thought. The first code each model wrote was right 42 "
+            "to 54 percent of the time under every strategy, but a plain question got an essay with four to thirteen "
+            "codes in it and the extractor took the wrong one. Few-shot examples helped no model. The ceiling was the "
+            "labels: the three models gave the same code on 81 of 100 notes and the keyword rule agreed with them on "
+            "only 47, with checkable errors such as cholecystitis with stones labelled K81 where the classification "
+            "puts it at K80. The labels were kept as provided so the two studies stay comparable, which makes the "
+            "score a measure of agreement with a keyword rule rather than with a clinical coder."
+        ),
+        tags=["Python", "Claude API", "Message Batches", "Prompt engineering", "Clinical coding"],
+        metrics=[],
+        repo_url="https://github.com/itsgichia/icd10am-claude-coding",
+        featured=True,
+        order_index=9,
     ),
     dict(
         slug="fna-ann-vs-logistic",
@@ -406,7 +484,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/fna-ann-vs-logistic",
         featured=False,
-        order_index=8,
+        order_index=10,
     ),
     dict(
         slug="infant-bronchiolitis-prediction",
@@ -436,7 +514,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/infant-bronchiolitis-prediction",
         featured=False,
-        order_index=9,
+        order_index=11,
     ),
     dict(
         slug="antidiabetic-drug-discovery",
@@ -459,7 +537,7 @@ PROJECTS = [
         metrics=[],
         repo_url="https://github.com/itsgichia/sur1-antidiabetic-discovery",
         featured=False,
-        order_index=10,
+        order_index=12,
     ),
 ]
 
