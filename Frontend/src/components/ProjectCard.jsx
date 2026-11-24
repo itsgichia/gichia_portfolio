@@ -3,7 +3,9 @@ import ChemFigure from './ChemFigure'
 import HeroFigure from './HeroFigure'
 import { SeqFigure } from './SeqFigure'
 import { AnzhfrMock, RhipMock } from './ProjectMocks'
-import { BronchFigure, ClaudeIcdFigure, FnaFigure, HistoFigure, IcdFigure, LigandFigure, RsvFitFigure } from './ProjectFigures'
+import { ClaudeIcdFigure } from './ClaudeIcdFigure'
+import { BronchFigure, FnaFigure, HistoFigure, IcdFigure, LigandFigure } from './ProjectFigures'
+import { RsvFitFigure } from './RsvFitFigure'
 
 export const COLORS = ['#2dd4bf', '#7cc4f8', '#f5b84a', '#6ee7a8', '#9fb3d1', '#f49a6a']
 
